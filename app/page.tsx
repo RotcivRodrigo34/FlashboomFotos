@@ -287,6 +287,7 @@ export default function Home() {
         para compartir cada momento especial.
 
       </p>
+      <div className="max-w-3xl mx-auto mt-16"></div>
 
     </div>
 
@@ -414,8 +415,652 @@ export default function Home() {
 
 </div>
 </div>
+
 </section>
 
+{/* TRANSICIÓN */}
+
+<section className="py-16">
+
+  <div className="max-w-7xl mx-auto px-6">
+
+    <div className="h-px bg-gradient-to-r from-transparent via-violet-300 to-transparent"></div>
+
+  </div>
+
+</section>
+
+{/* PLAN */}
+
+<section className="pb-28">
+
+  <div className="max-w-7xl mx-auto px-6">
+
+    <div className="text-center">
+
+      <span className="text-violet-600 font-semibold tracking-widest uppercase">
+
+        Elige tu plan
+
+      </span>
+
+      <h2 className="text-5xl font-bold text-gray-900 mt-5">
+
+        Todo lo que incluye
+
+        <br />
+
+        tu evento
+
+      </h2>
+
+      <p className="text-gray-500 text-xl max-w-3xl mx-auto mt-8">
+
+        Un solo pago.
+        Sin complicaciones.
+        Todo lo necesario para capturar
+        los mejores recuerdos.
+
+      </p>
+
+    </div>
+
+    <div className="max-w-3xl mx-auto mt-16">
+
+      <div className="bg-white rounded-[35px] shadow-xl border border-violet-100 p-8">
+
+        <div className="text-center">
+
+          <span className="bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-semibold">
+
+            Plan Único
+
+          </span>
+
+          <h3 className="text-3xl font-bold text-gray-900 mt-6">
+
+            Flashboom Fotos
+
+          </h3>
+
+          <div className="mt-5">
+
+            <span className="text-5xl font-black text-violet-600">
+
+              $299
+
+            </span>
+
+            <p className="text-gray-500 mt-2">
+
+              Pago único por evento
+
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div>📸 1 evento</div>
+
+          <div>👥 Invitados ilimitados</div>
+
+          <div>🖼️ Fotos ilimitadas*</div>
+
+          <div>🎥 Videos ilimitados*</div>
+
+          <div>📱 Código QR personalizado</div>
+
+          <div>🔒 Álbum privado</div>
+
+          <div>☁️ Google Drive integrado</div>
+
+          <div>⬇️ Descarga completa</div>
+
+          <div>📅 12 meses de acceso</div>
+
+        </div>
+
+        <button className="w-full mt-8 bg-violet-600 hover:bg-violet-700 text-white py-4 rounded-2xl font-semibold">
+
+          Crear mi álbum
+
+        </button>
+
+        <p className="text-xs text-center text-gray-400 mt-5">
+
+          *Sujeto al espacio disponible en tu cuenta de Google.
+
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+{/* TESTIMONIOS */}
+
+<section className="pb-28">
+
+<div className="max-w-6xl mx-auto px-6">
+
+<div className="text-center mb-16">
+
+<span className="text-violet-600 font-semibold tracking-widest uppercase">
+
+Testimonios
+
+</span>
+
+<h2 className="text-5xl font-bold text-gray-900 mt-5">
+
+Nuestros clientes
+
+</h2>
+
+<p className="text-gray-500 text-xl mt-6">
+
+Ellos ya vivieron la experiencia Flashboom Fotos.
+
+</p>
+
+</div>
+
+<div className="space-y-8">
+
+{/* 1 */}
+
+<div className="
+group
+max-w-xl
+bg-white
+rounded-3xl
+shadow-lg
+p-6
+transition-all
+duration-500
+hover:-translate-y-2
+hover:shadow-2xl
+hover:shadow-violet-300/40
+relative
+overflow-hidden">
+
+<div className="flex items-center gap-5 relative z-10">
+
+<div className="
+relative
+w-24
+h-24
+rounded-full
+overflow-hidden
+shadow-lg
+transition-all
+duration-500
+group-hover:scale-110">
+
+<Image
+src="/testimonios/mariajoseboda.png"
+alt="María y José"
+fill
+className="object-cover transition-transform duration-700 group-hover:scale-110"
+/>
+
+</div>
+
+<div>
+
+<p className="
+text-gray-600
+italic
+transition-all
+duration-500
+group-hover:text-gray-800">
+
+"Todos nuestros invitados participaron
+y tuvimos recuerdos increíbles."
+
+</p>
+
+<h4 className="
+font-bold
+mt-3
+transition-all
+duration-500
+group-hover:text-violet-700">
+
+María & José
+
+</h4>
+
+<span className="
+text-violet-600
+transition-all
+duration-500
+group-hover:text-violet-500">
+
+Boda
+
+</span>
+
+</div>
+
+</div>
+<div className="
+absolute
+bottom-0
+left-0
+h-1
+w-0
+bg-violet-500
+transition-all
+duration-500
+group-hover:w-full">
+</div>
+</div>
+
+{/* 2 */}
+
+<div className="
+group
+max-w-xl
+bg-white
+rounded-3xl
+shadow-lg
+p-6
+ml-auto
+transition-all
+duration-500
+hover:-translate-y-2
+hover:shadow-2xl
+hover:shadow-pink-300/40
+relative
+overflow-hidden">
+
+<div className="flex items-center gap-5">
+
+<div className="
+relative
+w-24
+h-24
+rounded-full
+overflow-hidden
+shadow-lg
+transition-all
+duration-500
+group-hover:scale-110">
+
+<Image
+  src="/testimonios/xvfernanda.png"
+  alt="Fernanda"
+  fill
+ className="
+object-cover
+object-[center_20%]
+transition-transform
+duration-700
+group-hover:scale-110"
+/>
+</div>
+
+<div>
+
+<p className="text-gray-600 italic">
+
+"Fue súper sencillo,
+todos escanearon el QR."
+
+</p>
+
+<h4 className="font-bold mt-3">
+
+Fernanda
+
+</h4>
+
+<span className="text-violet-600">
+
+XV Años
+
+</span>
+
+</div>
+
+</div>
+<div className="
+absolute
+bottom-0
+left-0
+h-1
+w-0
+bg-violet-500
+transition-all
+duration-500
+group-hover:w-full">
+</div>
+</div>
+
+{/* 3 */}
+
+<div className="
+group
+max-w-xl
+bg-white
+rounded-3xl
+shadow-lg
+p-6
+transition-all
+duration-500
+hover:-translate-y-2
+hover:shadow-2xl
+hover:shadow-purple-300/40
+relative
+overflow-hidden">
+
+<div className="flex items-center gap-5">
+
+<div
+  className="
+  relative
+  w-24
+  h-24
+  rounded-full
+  overflow-hidden
+  shadow-lg
+  transition-all
+  duration-500
+  group-hover:scale-110"
+>
+
+  <Image
+    src="/testimonios/luiscumple.png"
+    alt="Luis"
+    fill
+    className="
+    object-cover
+    object-center
+    transition-transform
+    duration-700
+    group-hover:scale-110"
+  />
+
+</div>
+
+<div>
+
+<p className="text-gray-600 italic">
+
+"Nos encantó tener todas las fotos
+en un solo lugar."
+
+</p>
+
+<h4 className="font-bold mt-3">
+
+Luis
+
+</h4>
+
+<span className="text-violet-600">
+
+Cumpleaños
+
+</span>
+
+</div>
+
+</div>
+<div className="
+absolute
+bottom-0
+left-0
+h-1
+w-0
+bg-violet-500
+transition-all
+duration-500
+group-hover:w-full">
+</div>
+</div>
+
+{/* 4 */}
+
+<div className="
+group
+max-w-xl
+bg-white
+rounded-3xl
+shadow-lg
+p-6
+ml-auto
+transition-all
+duration-500
+hover:-translate-y-2
+hover:shadow-2xl
+hover:shadow-pink-200/50
+relative
+overflow-hidden">
+
+<div className="flex items-center gap-5">
+
+<div
+  className="
+  relative
+  w-24
+  h-24
+  min-w-24
+  min-h-24
+  flex-shrink-0
+  rounded-full
+  overflow-hidden
+  shadow-lg
+  transition-all
+  duration-500
+  group-hover:scale-110">
+
+  <Image
+    src="/testimonios/anababy.png"
+    alt="Ana"
+    fill
+    className="
+    object-cover
+    object-center
+    transition-transform
+    duration-700
+    group-hover:scale-110"
+  />
+
+</div>
+
+<div>
+
+<p className="text-gray-600 italic">
+
+"Fue hermoso ver todas las fotos
+y mensajes que nuestra familia
+compartió durante el Baby Shower"
+
+</p>
+
+<h4 className="
+font-bold
+mt-3
+transition-all
+duration-500
+group-hover:text-violet-700">
+
+Ana
+
+</h4>
+
+<span className="
+text-violet-600
+transition-all
+duration-500
+group-hover:text-violet-500">
+
+Baby Shower
+
+</span>
+
+</div>
+
+</div>
+<div className="
+absolute
+bottom-0
+left-0
+h-1
+w-0
+bg-violet-500
+transition-all
+duration-500
+group-hover:w-full">
+</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+{/* TRANSICIÓN */}
+
+<section className="py-16">
+
+  <div className="max-w-7xl mx-auto px-6">
+
+    <div className="h-px bg-gradient-to-r from-transparent via-violet-300 to-transparent"></div>
+
+  </div>
+
+</section>
+
+{/* FOOTER */}
+
+<footer className="bg-gradient-to-b from-white to-violet-50">
+
+<div className="max-w-7xl mx-auto px-6 py-16">
+
+<div className="grid lg:grid-cols-3 gap-12">
+
+{/* LOGO */}
+
+<div>
+
+<Image
+src="/logofb.png"
+alt="Flashboom Fotos"
+width={170}
+height={70}
+/>
+
+<p className="text-gray-500 mt-6 leading-8">
+
+Convierte las fotos de tus invitados
+en recuerdos inolvidables.
+
+</p>
+
+</div>
+
+{/* NAVEGACIÓN */}
+
+<div>
+
+<h3 className="font-bold text-xl text-gray-900">
+
+Navegación
+
+</h3>
+
+<div className="flex flex-col gap-4 mt-6 text-gray-500">
+
+<a href="#" className="hover:text-violet-600 transition">
+
+Cómo funciona
+
+</a>
+
+<a href="#" className="hover:text-violet-600 transition">
+
+Planes
+
+</a>
+
+<a href="#" className="hover:text-violet-600 transition">
+
+Testimonios
+
+</a>
+
+<a href="#" className="hover:text-violet-600 transition">
+
+FAQ
+
+</a>
+
+</div>
+
+</div>
+
+{/* CONTACTO */}
+
+<div>
+
+<h3 className="font-bold text-xl text-gray-900">
+
+Flashboom Fotos
+
+</h3>
+
+<p className="text-gray-500 mt-6 leading-8">
+
+Plataforma para compartir
+fotos y videos de eventos
+mediante códigos QR.
+
+</p>
+
+<div className="mt-6">
+
+<button className="
+bg-violet-600
+hover:bg-violet-700
+transition
+text-white
+px-6
+py-3
+rounded-xl">
+
+Crear mi álbum
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div className="border-t border-violet-100 mt-16 pt-8">
+
+<p className="text-center text-gray-400">
+
+© 2026 Flashboom Fotos.
+Todos los derechos reservados.
+
+</p>
+
+</div>
+
+</div>
+
+</footer>
     </main>
   );
 }
