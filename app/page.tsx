@@ -1,9 +1,28 @@
+"use client";
 import Image from "next/image";
+import FaqItem from "./components/FaqItem";
+import Link from "next/link";
+
+
+import { useState,useEffect } from "react";
 
 export default function Home() {
+  const [logueado,setLogueado]=useState(false);
+
+useEffect(()=>{
+
+const login=localStorage.getItem("logueado");
+
+if(login=="true"){
+
+setLogueado(true);
+
+}
+
+},[]);
   return (
     
-<main className="min-h-screen bg-white">
+<main id="inicio" className="min-h-screen bg-white">
 
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-violet-700/20 blur-[150px] rounded-full"></div>
 
@@ -13,46 +32,117 @@ export default function Home() {
 
   <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
 
-    <Image
-      src="/logofb.png"
-      alt="FlashboomFotos"
-      width={170}
-      height={60}
-    />
+    <a href="#inicio">
+  <Image
+    src="/logofb.png"
+    alt="FlashboomFotos"
+    width={170}
+    height={60}
+  />
+</a>
 
     <nav className="hidden lg:flex gap-8 text-gray-700">
+      
+      <a  href="#inicio" className="hover:text-violet-600 transition">
+       Inicio
+      </a>
 
-      <a href="#" className="hover:text-violet-600 transition">
+      <a  href="#como-funciona" className="hover:text-violet-600 transition">
         Cómo funciona
       </a>
-
-      <a href="#" className="hover:text-violet-600 transition">
+      
+      {/* para despues 
+      //<a href="#eventos" className="hover:text-violet-600 transition">
         Eventos
       </a>
+      */}
 
-      <a href="#" className="hover:text-violet-600 transition">
+      <a href="#planes" className="hover:text-violet-600 transition">
         Planes
       </a>
 
-      <a href="#" className="hover:text-violet-600 transition">
+      <a href="#faq" className="hover:text-violet-600 transition">
         FAQ
       </a>
+      {
+logueado && (
+
+<Link
+href="/dashboard"
+className="hover:text-violet-600 transition">
+
+Mis Eventos
+
+</Link>
+
+)
+}
 
     </nav>
 
     <div className="flex gap-4 items-center">
 
-      <button className="hidden md:block text-gray-700 hover:text-violet-600">
+     {
+!logueado ? (
 
-        Iniciar sesión
+<Link
 
-      </button>
+href="/login"
 
-      <button className="bg-violet-600 hover:bg-violet-700 transition text-white px-6 py-3 rounded-xl">
+className="hidden md:block text-gray-700 hover:text-violet-600">
 
-        Crear mi álbum
+Iniciar sesión
 
-      </button>
+
+</Link>
+
+)
+
+:
+
+(
+
+<button
+
+onClick={()=>{
+
+localStorage.removeItem("logueado");
+
+window.location.reload();
+
+}}
+
+className="hidden md:block text-gray-700 hover:text-violet-600">
+
+Cerrar sesión
+
+</button>
+
+)
+}
+
+{
+!logueado && (
+
+<Link
+
+href="/crear-album"
+
+className="
+bg-violet-600
+hover:bg-violet-700
+transition
+text-white
+px-6
+py-3
+rounded-xl">
+
+Crear mi álbum
+
+</Link>
+
+)
+}
 
     </div>
 
@@ -63,7 +153,7 @@ export default function Home() {
 
 {/* HERO */}
 
-<section className="max-w-7xl mx-auto px-6 pt-16 pb-20">
+<section  className="max-w-7xl mx-auto px-6 pt-16 pb-20">
 
   <div className="grid lg:grid-cols-2 gap-16 items-center">
 
@@ -159,17 +249,40 @@ export default function Home() {
 
       <div className="flex gap-5 mt-12">
 
-        <button className="bg-violet-600 hover:bg-violet-700 transition text-white px-8 py-4 rounded-xl shadow-lg">
+        <Link
+  href="/crear-album"
+  className="
+  bg-violet-600
+  hover:bg-violet-700
+  transition
+  text-white
+  px-8
+  py-4
+  rounded-xl
+  inline-block
+  text-center"
+>
 
-          Crear mi álbum
+  Crear mi álbum
 
-        </button>
+</Link>
+<a
+  href="#planes"
+  className="
+  border
+  border-gray-300
+  hover:border-violet-600
+  transition
+  px-8
+  py-4
+  rounded-xl
+  text-gray-800
+  inline-block"
+>
 
-        <button className="border border-gray-300 hover:border-violet-600 transition px-8 py-4 rounded-xl text-gray-800">
+  Ver planes
 
-          Ver planes
-
-        </button>
+</a>
 
       </div>
 
@@ -259,7 +372,7 @@ export default function Home() {
 </section>
 
 
-<section className="pb-28">
+<section id="como-funciona" className="pb-28 scroll-mt-45">
 
   <div className="max-w-7xl mx-auto px-6">
 
@@ -432,7 +545,7 @@ export default function Home() {
 
 {/* PLAN */}
 
-<section className="pb-28">
+<section id="planes" className="pb-28 scroll-mt-45">
 
   <div className="max-w-7xl mx-auto px-6">
 
@@ -523,11 +636,23 @@ export default function Home() {
 
         </div>
 
-        <button className="w-full mt-8 bg-violet-600 hover:bg-violet-700 text-white py-4 rounded-2xl font-semibold">
+        <Link
+  href="/crear-album"
+  className="
+  bg-violet-600
+  hover:bg-violet-700
+  transition
+  text-white
+  px-8
+  py-4
+  rounded-xl
+  inline-block
+  text-center"
+>
 
-          Crear mi álbum
+  Crear mi álbum
 
-        </button>
+</Link>
 
         <p className="text-xs text-center text-gray-400 mt-5">
 
@@ -543,9 +668,21 @@ export default function Home() {
 
 </section>
 
+{/* TRANSICIÓN */}
+
+<section className="py-16">
+
+  <div className="max-w-7xl mx-auto px-6">
+
+    <div className="h-px bg-gradient-to-r from-transparent via-violet-300 to-transparent"></div>
+
+  </div>
+
+</section>
+
 {/* TESTIMONIOS */}
 
-<section className="pb-28">
+<section id="testimonios" className="pb-28 scroll-mt-45">
 
 <div className="max-w-6xl mx-auto px-6">
 
@@ -940,24 +1077,92 @@ group-hover:w-full">
 
 </section>
 
-{/* FOOTER */}
 
-<footer className="bg-gradient-to-b from-white to-violet-50">
+{/* FAQ */}
 
-<div className="max-w-7xl mx-auto px-6 py-16">
+<section id="faq" className="pb-28 scroll-mt-45">
 
-<div className="grid lg:grid-cols-3 gap-12">
+<div className="max-w-5xl mx-auto px-6">
 
-{/* LOGO */}
+<div className="text-center">
 
-<div>
+<span className="text-violet-600 font-semibold tracking-widest uppercase">
 
-<Image
-src="/logofb.png"
-alt="Flashboom Fotos"
-width={170}
-height={70}
+Preguntas frecuentes
+
+</span>
+
+<h2 className="text-5xl font-bold text-gray-900 mt-5">
+
+Todo lo que necesitas saber
+
+</h2>
+
+<p className="text-gray-500 text-xl mt-8">
+
+Queremos que disfrutes tu evento.
+Aquí respondemos las dudas más comunes.
+
+</p>
+
+</div>
+
+<div className="mt-16 space-y-6">
+
+<FaqItem
+question="📱 ¿Necesitan instalar una app?"
+answer="No necesitas instalar nada. Todo funciona desde el navegador de tu celular."
 />
+
+<FaqItem
+question="👥 ¿Cuántos invitados pueden participar?"
+answer="No existe un límite de invitados. Comparte tu código QR con todos los asistentes."
+/>
+
+<FaqItem
+question="📸 ¿Las fotos son ilimitadas?"
+answer="Cada cuenta de Google incluye 15 GB gratuitos, suficientes para miles de fotografías y numerosos videos."
+/>
+
+<FaqItem
+question="☁️ ¿Cómo crear una cuenta de Google Drive?"
+answer="Solo necesitas una cuenta de Google gratuita. Durante la configuración te guiaremos paso a paso."
+/>
+
+<FaqItem
+question="🎥 ¿Qué pasa con los videos?"
+answer="Tus invitados también podrán compartir videos que se almacenarán junto con las fotografías."
+/>
+
+<FaqItem
+question="❤️ ¿Cuánto tiempo dura el álbum?"
+answer="Tus recuerdos permanecerán disponibles mientras mantengas activa tu cuenta de Google."
+/>
+
+<FaqItem
+question="💬 ¿Si tengo dudas con quién me contacto?"
+answer="Contamos con atención personalizada vía WhatsApp para ayudarte antes, durante y después de tu evento."
+/>
+
+</div>
+</div>
+</section>
+
+{/* FOOTER */}
+<footer className="bg-gradient-to-b from-white to-violet-50">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+            <div className="grid lg:grid-cols-3 gap-12">
+{/* LOGO */}
+            <div>
+
+           <a href="#inicio">
+  <Image
+    src="/logofb.png"
+    alt="FlashboomFotos"
+    width={170}
+    height={60}
+  />
+</a>
 
 <p className="text-gray-500 mt-6 leading-8">
 
@@ -980,25 +1185,25 @@ Navegación
 
 <div className="flex flex-col gap-4 mt-6 text-gray-500">
 
-<a href="#" className="hover:text-violet-600 transition">
+<a href="#como-funciona" className="hover:text-violet-600 transition">
 
 Cómo funciona
 
 </a>
 
-<a href="#" className="hover:text-violet-600 transition">
+<a href="#planes" className="hover:text-violet-600 transition">
 
 Planes
 
 </a>
 
-<a href="#" className="hover:text-violet-600 transition">
+<a href="#testimonios" className="hover:text-violet-600 transition">
 
 Testimonios
 
 </a>
 
-<a href="#" className="hover:text-violet-600 transition">
+<a href="#faq" className="hover:text-violet-600 transition">
 
 FAQ
 
@@ -1028,18 +1233,23 @@ mediante códigos QR.
 
 <div className="mt-6">
 
-<button className="
-bg-violet-600
-hover:bg-violet-700
-transition
-text-white
-px-6
-py-3
-rounded-xl">
+<Link
+  href="/crear-album"
+  className="
+  bg-violet-600
+  hover:bg-violet-700
+  transition
+  text-white
+  px-8
+  py-4
+  rounded-xl
+  inline-block
+  text-center"
+>
 
-Crear mi álbum
+  Crear mi álbum
 
-</button>
+</Link>
 
 </div>
 
