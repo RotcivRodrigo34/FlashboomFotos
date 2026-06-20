@@ -55,7 +55,24 @@ return;
 
 }
 
-   setMensaje("Token generado correctamente.");
+   const respuesta = await fetch("/api/send-email", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json"
+     },
+     body: JSON.stringify({
+       correo: data[0].correo,
+       token: token
+    })
+});
+
+const resultado = await respuesta.json();
+
+console.log(resultado);
+
+setMensaje(
+  "Te hemos enviado un correo para recuperar tu contraseña."
+);
 }
 return(
 
