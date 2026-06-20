@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { useState,useEffect } from "react";
 export default function Pago() {
-    const [nombre,setNombre]=useState("");
+
+  const [nombre,setNombre]=useState("");
+const [password,setPassword]=useState("");
 
 const [celular,setCelular]=useState("");
 
@@ -25,6 +28,7 @@ const nombreLS=localStorage.getItem("nombre");
 const celularLS=localStorage.getItem("celular");
 
 const correoLS=localStorage.getItem("correo");
+const passwordLS=localStorage.getItem("password");
 
 const eventoLS=localStorage.getItem("evento");
 
@@ -43,6 +47,7 @@ if(
 !celularLS||
 
 !correoLS||
+!passwordLS||
 
 !eventoLS||
 
@@ -67,6 +72,7 @@ setNombre(nombreLS);
 setCelular(celularLS);
 
 setCorreo(correoLS);
+setPassword(passwordLS);
 
 setEvento(eventoLS);
 
@@ -79,6 +85,109 @@ setEstado(estadoLS);
 setCiudad(ciudadLS);
 
 },[]);
+async function pagar(){
+
+let usuarioID:number;
+
+const { data:usuarioExistente } = await supabase
+
+.from("usuarios")
+
+.select()
+
+.eq("correo",correo);
+
+if(usuarioExistente && usuarioExistente.length>0){
+
+usuarioID=usuarioExistente[0].id;
+
+}else{
+
+const { data,error } = await supabase
+
+.from("usuarios")
+
+.insert([
+
+{
+
+nombre:nombre,
+
+correo:correo,
+
+celular:celular,
+
+password:password
+
+}
+
+])
+
+.select();
+
+if(error){
+
+alert(error.message);
+
+return;
+
+}
+
+usuarioID=data![0].id;
+
+}
+
+const { error:errorEvento } = await supabase
+
+.from("eventos")
+
+.insert([
+
+{
+
+usuario_id:usuarioID,
+
+nombre_evento:evento,
+
+tipo_evento:tipoEvento,
+
+fecha:fecha,
+
+estado:estado,
+
+ciudad:ciudad,
+
+estatus:"ACTIVO"
+
+}
+
+]);
+
+if(errorEvento){
+
+alert(errorEvento.message);
+
+return;
+
+}
+
+localStorage.removeItem("nombre");
+localStorage.removeItem("correo");
+localStorage.removeItem("celular");
+localStorage.removeItem("password");
+
+localStorage.removeItem("evento");
+localStorage.removeItem("tipoEvento");
+localStorage.removeItem("fecha");
+localStorage.removeItem("estado");
+localStorage.removeItem("ciudad");
+
+localStorage.setItem("logueado","true");
+localStorage.setItem("usuarioID",usuarioID.toString());
+
+window.location.href="/dashboard";
+
+}
   return (
 
     <main className="min-h-screen bg-gradient-to-b from-white to-violet-50">
@@ -338,20 +447,26 @@ $299.00
           <div className="flex gap-4 mt-10">
 
             <Link
-            href="/crear-album/evento"
-            className="w-full border border-violet-300 text-violet-600 py-4 rounded-2xl text-center">
+               href="/crear-album/evento"
+               className="w-full border border-violet-300 text-violet-600 py-4 rounded-2xl text-center">
 
               ← Regresar
 
             </Link>
 
-            <Link
-            href="/crear-album/pago"
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white py-4 rounded-2xl text-center">
-
-              Pagar $299 →
-
-            </Link>
+            <button
+                onClick={pagar}
+                className="
+                w-full
+                bg-violet-600
+                hover:bg-violet-700
+                text-white
+                py-4
+                rounded-2xl
+                text-center
+                ">
+                Pagar $299 →
+            </button>
 
           </div>
         

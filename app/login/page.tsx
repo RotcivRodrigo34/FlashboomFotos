@@ -1,9 +1,58 @@
 "use client";
 
 import Link from "next/link";
-
+import { useState } from "react";
+import {supabase} from "@/lib/supabase";
 export default function Login() {
 
+const [correo,setCorreo]=useState("");
+
+const [password,setPassword]=useState("");
+const [mensaje,setMensaje]=useState("");
+async function login(){
+
+setMensaje("");
+
+const {data,error}=await supabase
+
+.from("usuarios")
+
+.select()
+
+.eq("correo",correo);
+if(error){
+
+setMensaje(error.message);
+
+return;
+
+}
+if(data.length===0){
+
+setMensaje("No encontramos una cuenta con ese correo.");
+
+return;
+
+}
+if(data[0].password!==password){
+
+setMensaje("Contraseña incorrecta.");
+
+return;
+
+}
+localStorage.setItem("logueado","true");
+
+localStorage.setItem(
+
+"usuarioID",
+
+data[0].id.toString()
+
+);
+window.location.href="/dashboard";
+
+}
 return (
 
 <main className="min-h-screen bg-gradient-to-b from-white to-violet-50 flex items-center justify-center p-6">
@@ -53,6 +102,9 @@ Correo electrónico
 
 type="email"
 
+value={correo}
+
+onChange={(e)=>setCorreo(e.target.value)}
 placeholder="correo@ejemplo.com"
 
 className="
@@ -81,6 +133,9 @@ Contraseña
 
 type="password"
 
+value={password}
+
+onChange={(e)=>setPassword(e.target.value)}
 placeholder="********"
 
 className="
@@ -94,18 +149,23 @@ focus:outline-none
 focus:border-violet-500
 "
 />
+<Link
+
+href="/recuperar-password"
+
+className="text-violet-600 hover:underline text-sm"
+
+>
+
+¿Olvidaste tu contraseña?
+
+</Link>
 
 </div>
 
 <button
 
-onClick={()=>{
-
-localStorage.setItem("logueado","true");
-
-window.location.href="/dashboard";
-
-}}
+onClick={login}
 
 className="
 w-full
@@ -121,6 +181,17 @@ rounded-2xl
 Iniciar sesión
 
 </button>
+{
+mensaje && (
+
+<p className="text-center text-red-500 mt-4">
+
+{mensaje}
+
+</p>
+
+)
+}
 <div className="text-center mt-8">
 
 <p className="text-gray-500">

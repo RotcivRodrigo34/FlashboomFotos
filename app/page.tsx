@@ -2,8 +2,7 @@
 import Image from "next/image";
 import FaqItem from "./components/FaqItem";
 import Link from "next/link";
-
-
+import Header from "@/app/components/Header";
 import { useState,useEffect } from "react";
 
 export default function Home() {
@@ -85,16 +84,28 @@ Mis Eventos
      {
 !logueado ? (
 
-<Link
+<button
 
-href="/login"
+onClick={()=>{
 
-className="hidden md:block text-gray-700 hover:text-violet-600">
+window.location.href="/login";
+
+}}
+
+className="
+w-full
+mt-10
+bg-violet-600
+hover:bg-violet-700
+transition
+text-white
+py-4
+rounded-2xl
+">
 
 Iniciar sesión
 
-
-</Link>
+</button>
 
 )
 

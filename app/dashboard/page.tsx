@@ -1,264 +1,182 @@
 "use client";
 
 import Link from "next/link";
-import {useState} from "react";
-
+import {useState,useEffect} from "react";
+import {supabase} from "@/lib/supabase";
+import EventCard from "@/app/components/EventCard";
+import Header from "@/app/components/Header";
 export default function Dashboard(){
   
- const [abierto,setAbierto]=useState<number|null>(null);
+const [abierto,setAbierto]=useState<number|null>(null);
+const [usuarioID,setUsuarioID]=useState("");
+const [eventosDB,setEventosDB]=useState<any[]>([]);
+useEffect(()=>{
 
-const eventos=[
-{
-icono:"💒",
-nombre:"Boda Ana y Pedro",
-fecha:"20 Julio 2026",
-ciudad:"Guadalajara",
-cliente:"Ana y Pedro",
-correo:"ana@ejemplo.com"
-},
-{
-icono:"👑",
-nombre:"XV Fernanda",
-fecha:"28 Julio 2026",
-ciudad:"CDMX",
-cliente:"Fernanda",
-correo:"fernanda@ejemplo.com"
-},
-{
-icono:"🎂",
-nombre:"Cumple Daniel",
-fecha:"15 Agosto 2026",
-ciudad:"Monterrey",
-cliente:"Daniel",
-correo:"daniel@ejemplo.com"
+const logueado=localStorage.getItem("logueado");
+
+const usuario=localStorage.getItem("usuarioID");
+
+if(!logueado){
+
+window.location.href="/login";
+
+return;
+
 }
-];
+
+if(usuario){
+
+setUsuarioID(usuario);
+
+}
+
+},[]);
+useEffect(()=>{
+
+if(!usuarioID){
+
+return;
+
+}
+
+async function cargarEventos(){
+    
+
+const {data,error}=await supabase
+
+.from("eventos")
+
+.select()
+
+.eq("usuario_id",Number(usuarioID))
+
+.order("fecha",{ascending:true});
+
+if(error){
+
+alert(error.message);
+
+return;
+
+}
+
+setEventosDB(data||[]);
+
+}
+
+cargarEventos();
+
+},[usuarioID]);
+
+const meses=[
+   "Enero",
+   "Febrero",
+   "Marzo",
+   "Abril",
+   "Mayo",
+   "Junio",
+   "Julio",
+   "Agosto",
+   "Septiembre",
+   "Octubre",
+   "Noviembre",
+   "Diciembre"
+   ];
+
+const eventosAgrupados=eventosDB.reduce((acc:any,evento:any)=>{
+const fecha=new Date(evento.fecha);
+const anio=fecha.getFullYear();
+const mes=meses[fecha.getMonth()];
+
+if(!acc[anio]){
+acc[anio]={};
+}
+
+if(!acc[anio][mes]){
+acc[anio][mes]=[];
+}
+
+acc[anio][mes].push(evento);
+return acc;
+},{});
 
 return(
 
+<>
+
+<Header/>
+
 <main className="min-h-screen bg-gradient-to-b from-white to-violet-50">
-
-<section className="max-w-6xl mx-auto px-6 py-20">
-
-<div className="flex justify-between items-center">
-
-<div>
-
-<p className="text-violet-600 uppercase tracking-[4px] font-semibold">
-
-Flashboom Fotos
-
-</p>
-
-<h1 className="text-5xl font-bold mt-3">
-
-Mis Eventos
-
-</h1>
-
-</div>
-
-<Link
-
-href="/crear-album"
-
-className="
-bg-violet-600
-hover:bg-violet-700
-transition
-text-white
-px-6
-py-4
-rounded-2xl">
-
-+ Nuevo Evento
-
-</Link>
-
-</div>
-
+   <section className="max-w-6xl mx-auto px-6 py-20">
+      <div className="flex justify-between items-center">
+         <div>
+            <p className="text-violet-600 uppercase tracking-[4px] font-semibold">
+               Flashboom Fotos
+            </p> 
+            <h1 className="text-5xl font-bold mt-3"> Mis Eventos </h1>
+            <p className="mt-4 text-violet-600">
+               Eventos contratados: {eventosDB.length}
+            </p>            
+        </div>
+    </div>
 <div className="mt-16">
+
+{
+
+Object.keys(eventosAgrupados).map((anio)=>(
+
+<div key={anio}>
 
 <h2 className="text-3xl font-bold">
 
-2026
+{anio}
 
 </h2>
 
-<p className="text-gray-400 mt-2 uppercase tracking-[3px]">
+{
 
-Julio
+Object.keys(eventosAgrupados[anio]).map((mes)=>(
+
+<div key={mes}>
+
+<p className="text-gray-400 mt-8 uppercase tracking-[3px]">
+
+{mes}
 
 </p>
 
 <div className="mt-8 space-y-6">
 
 {
-eventos.slice(0,2).map((evento,index)=>(
 
-<div
+eventosAgrupados[anio][mes].map((evento:any,index:number)=>(
+
+<EventCard
 
 key={index}
 
-onClick={()=>{
+evento={{
 
-setAbierto(
+icono:"🎉",
 
-abierto===index
+nombre:evento.nombre_evento,
 
-?
+fecha:evento.fecha,
 
-null
-
-:
-
-index
-
-);
+ciudad:evento.ciudad
 
 }}
 
-className="
-cursor-pointer
-bg-white
-rounded-3xl
-p-8
-shadow-lg
-border
-border-violet-100
-hover:shadow-violet-200/50
-hover:shadow-xl
-transition
-">
+index={evento.id}
 
-<div className="flex justify-between items-center">
+abierto={abierto}
 
-<div>
+setAbierto={setAbierto}
 
-<h3 className="text-2xl font-bold">
+/>
 
-{evento.icono} {evento.nombre}
+))
 
-</h3>
-
-<p className="text-gray-500 mt-3">
-
-📅 {evento.fecha}
-
-</p>
-
-<p className="text-gray-500 mt-2">
-
-📍 {evento.ciudad}
-
-</p>
-
-</div>
-
-<div
-className="
-text-4xl
-text-violet-600
-transition
-duration-300
-">
-
-{
-abierto===index
-?
-"⌃"
-:
-"⌄"
-}
-
-</div>
-
-{
-abierto===index&&(
-
-<div className="mt-8 border-t border-violet-100 pt-8">
-
-<div className="grid md:grid-cols-2 gap-6">
-
-<div>
-
-<p className="text-gray-400">
-
-Cliente
-
-</p>
-
-<p className="font-semibold">
-
-{evento.cliente}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-400">
-
-Correo
-
-</p>
-
-<p className="font-semibold">
-
-{evento.correo}
-
-</p>
-
-</div>
-<div className="mt-6">
-
-<p className="text-gray-400">
-
-Estado
-
-</p>
-
-<p className="font-semibold text-green-600">
-
-🟢 Activo
-
-</p>
-
-</div>
-</div>
-
-<div className="grid md:grid-cols-2 gap-4 mt-8">
-
-<button className="border rounded-2xl py-3 hover:bg-violet-50">
-
-✏ Editar
-
-</button>
-
-<button className="border rounded-2xl py-3 hover:bg-violet-50">
-
-☁ Configurar Google Drive
-
-</button>
-
-<button className="border rounded-2xl py-3 hover:bg-violet-50">
-
-🎨 Plantillas
-
-</button>
-
-<button className="border rounded-2xl py-3 hover:bg-violet-50">
-
-🔳 QR
-
-</button>
-
-</div>
-
-</div>
-
-)
 }
 
 </div>
@@ -266,73 +184,20 @@ Estado
 </div>
 
 ))
+
 }
 
 </div>
 
-<p className="text-gray-400 mt-12 uppercase tracking-[3px]">
+))
 
-Agosto
-
-</p>
-
-<div className="mt-8">
-
-<div
-
-className="
-bg-white
-rounded-3xl
-p-8
-shadow-lg
-border
-border-violet-100
-hover:shadow-violet-200/50
-hover:shadow-xl
-transition">
-
-<div className="flex justify-between items-center">
-
-<div>
-
-<h3 className="text-2xl font-bold">
-
-🎂 Cumple Daniel
-
-</h3>
-
-<p className="text-gray-500 mt-3">
-
-📅 15 Agosto 2026
-
-</p>
-
-<p className="text-gray-500 mt-2">
-
-📍 Monterrey
-
-</p>
+}
 
 </div>
-
-<div className="text-4xl text-violet-600">
-
-⌄
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 </section>
-
 </main>
 
-);
+</>
 
+);
 }
