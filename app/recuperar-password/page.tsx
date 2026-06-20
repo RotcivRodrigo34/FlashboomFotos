@@ -12,24 +12,51 @@ const [mensaje,setMensaje]=useState("");
 async function recuperar(){
 
    setMensaje("");
+
    const {data,error}=await supabase
    .from("usuarios")
    .select()
    .eq("correo",correo);
+
    if(error){
       setMensaje(error.message);
       return;
-    }
-    if(data.length===0){
+   }
+
+   if(data.length===0){
       setMensaje("No encontramos una cuenta con ese correo.");
       return;
-    }
-    const token=uuidv4();
-    console.log(token);
-    alert("Token generado correctamente");
+   }
+
+   const token=uuidv4();
+
+   const expira=new Date();
+   expira.setMinutes(expira.getMinutes()+30);
+
+   const {error:tokenError}=await supabase
+   .from("password_reset")
+   .insert([
+      {
+         usuario_id:data[0].id,
+         correo:data[0].correo,
+         token:token,
+         usado:false,
+         expira:expira
+      }
+   ]);
+
+if(tokenError){
+
+console.log(tokenError);
+
+setMensaje(JSON.stringify(tokenError));
+
+return;
 
 }
 
+   setMensaje("Token generado correctamente.");
+}
 return(
 
 <main className="min-h-screen bg-gradient-to-b from-white to-violet-50 flex items-center justify-center p-6">
