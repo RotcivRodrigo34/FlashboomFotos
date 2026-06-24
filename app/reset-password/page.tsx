@@ -1,11 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+export const dynamic = "force-dynamic";
 
-export default function ResetPassword() {
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [mensaje,setMensaje]=useState("Validando token...");
@@ -268,4 +271,28 @@ setTimeout(()=>{
       </div>
     </main>
   );
+}
+export default function ResetPassword() {
+
+  return (
+
+    <Suspense
+      fallback={
+
+        <main className="min-h-screen flex items-center justify-center">
+
+          Cargando...
+
+        </main>
+
+      }
+
+    >
+
+      <ResetPasswordContent/>
+
+    </Suspense>
+
+  );
+
 }

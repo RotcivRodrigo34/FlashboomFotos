@@ -58,37 +58,104 @@ interface GoogleDriveData {
 export default function GoogleDriveCard() {
 
   const [datos, setDatos] = useState<GoogleDriveData | null>(null);
+  const [cargando,setCargando]=useState(true);
+  const [error,setError]=useState("");
 
   const usuarioID =
     typeof window !== "undefined"
       ? localStorage.getItem("usuarioID")
       : null;
 
-  useEffect(() => {
+useEffect(() => {
 
     if (!usuarioID) return;
 
-    fetch(`/api/dashboard/google-drive?usuario=${usuarioID}`)
+async function cargarDrive(){
 
-      .then((r) => r.json())
+    try{
 
-      .then((d) => setDatos(d));
+        setCargando(true);
 
-  }, [usuarioID]);
+        const response=await fetch(
+            `/api/dashboard/google-drive?usuario=${usuarioID}`
+        );
 
-  if (!datos) {
+const data = await response.json();
 
-    return (
+console.log("Respuesta API:", data);
 
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+if(data.error){
 
-        Cargando Google Drive...
+    setError(data.error);
 
-      </div>
+    return;
+
+}
+
+setDatos(data);
+
+    }
+    catch(err){
+
+        console.log(err);
+
+        setError("No fue posible cargar Google Drive.");
+
+    }
+    finally{
+
+        setCargando(false);
+
+    }
+
+}
+
+cargarDrive();
+
+    cargarDrive();
+
+}, [usuarioID]);
+
+if(cargando){
+
+    return(
+
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+
+            Cargando Google Drive...
+
+        </div>
 
     );
 
-  }
+}
+
+if(error){
+
+    return(
+
+        <div className="bg-red-50 border border-red-200 rounded-3xl p-8">
+
+            {error}
+
+        </div>
+
+    );
+
+}
+if(!datos){
+
+    return(
+
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+
+            No hay información de Google Drive.
+
+        </div>
+
+    );
+
+}
 
   // ------------------------------
 
