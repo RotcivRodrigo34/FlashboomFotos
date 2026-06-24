@@ -1,17 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
+import { conectarGoogleDrive } from "@/lib/googleDriveService";
 
 export async function GET(request: NextRequest) {
 
-  const code = request.nextUrl.searchParams.get("code");
+  try {
 
-  console.log("Código recibido:", code);
+    const code = request.nextUrl.searchParams.get("code");
 
-  return NextResponse.json({
+    const usuarioID = request.nextUrl.searchParams.get("state");
 
-    mensaje: "Callback recibido correctamente",
+    if (!code || !usuarioID) {
 
-    code
+      return NextResponse.json({
 
-  });
+        error: "Código o usuario no recibido"
+
+      });
+
+    }
+
+    const { error } = await conectarGoogleDrive(
+
+      Number(usuarioID),
+
+      code
+
+    );
+
+    if (error) {
+
+      console.log(error);
+
+      return NextResponse.json({
+
+        error: error.message
+
+      });
+
+    }
+
+    return NextResponse.redirect(
+
+      new URL(
+
+        "/dashboard?drive=ok",
+
+        request.url
+
+      )
+
+    );
+
+  }
+
+  catch (error) {
+
+    console.log(error);
+
+    return NextResponse.json({
+
+      error: "Error al conectar Google Drive"
+
+    });
+
+  }
 
 }

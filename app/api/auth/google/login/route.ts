@@ -1,18 +1,25 @@
-import { NextResponse } from "next/server";
-import { oauth2Client,GOOGLE_SCOPES } from "@/lib/google";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  oauth2Client,
+  GOOGLE_SCOPES
+} from "@/lib/google";
 
-export async function GET(){
+export async function GET(request: NextRequest) {
 
-const url=oauth2Client.generateAuthUrl({
+  const usuario = request.nextUrl.searchParams.get("usuario");
 
-access_type:"offline",
+  const url = oauth2Client.generateAuthUrl({
 
-prompt:"consent",
+    access_type: "offline",
 
-scope:GOOGLE_SCOPES
+    prompt: "consent",
 
-});
+    scope: GOOGLE_SCOPES,
 
-return NextResponse.redirect(url);
+    state: usuario ?? ""
+
+  });
+
+  return NextResponse.redirect(url);
 
 }

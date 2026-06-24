@@ -5,6 +5,7 @@ import {useState,useEffect} from "react";
 import {supabase} from "@/lib/supabase";
 import EventCard from "@/app/components/EventCard";
 import Header from "@/app/components/Header";
+import GoogleDriveCard from "@/app/components/GoogleDriveCard";
 export default function Dashboard(){
   
 const [abierto,setAbierto]=useState<number|null>(null);
@@ -118,6 +119,10 @@ return(
                Eventos contratados: {eventosDB.length}
             </p>            
         </div>
+    </div>
+    <div className="mt-10">
+
+      <GoogleDriveCard/>
     </div>
 <div className="mt-16">
 
