@@ -76,7 +76,7 @@ export default function HeroCarousel() {
 
                     relative
 
-                    h-[150px]
+                    h-[200px]
 
                     rounded-[24px]
 

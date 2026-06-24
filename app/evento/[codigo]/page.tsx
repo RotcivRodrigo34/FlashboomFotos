@@ -34,18 +34,18 @@ export default function EventoPublico() {
 <section className="px-5 mt-5">
 
     <button
-
-        className="
-        w-full
-        h-8
-        rounded-full
-        bg-violet-600
-        text-white
-    border border-violet-600
+className="
+w-full
 bg-violet-600
-        transition
-        active:scale-95
-        "
+hover:bg-violet-700
+text-white
+font-semibold
+text-lg
+py-4
+rounded-full
+transition
+shadow-lg
+"
 
     >
 
@@ -57,7 +57,7 @@ bg-violet-600
 
             </span>
 
-           <span className="font-medium text-sm">
+           <span className="font-medium text-lg">
 
                 Subir mis fotografías
 
