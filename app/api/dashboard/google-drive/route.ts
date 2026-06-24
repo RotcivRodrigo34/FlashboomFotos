@@ -37,16 +37,36 @@ conectado
 
     .maybeSingle();
 
-  if (error) {
+if (error) {
 
-    return NextResponse.json({
-
+  return NextResponse.json(
+    {
       error: error.message
+    },
+    {
+      status: 500
+    }
+  );
 
-    });
+}
 
-  }
+// Usuario sin Google Drive conectado
+if (!data) {
 
-  return NextResponse.json(data);
+  return NextResponse.json({
+
+    conectado: false,
+    google_email: "",
+    drive_folder_root_id: "",
+    drive_folder_root_nombre: "",
+    drive_total_storage: null,
+    drive_used_storage: null,
+    ultima_sincronizacion: ""
+
+  });
+
+}
+
+return NextResponse.json(data);
 
 }

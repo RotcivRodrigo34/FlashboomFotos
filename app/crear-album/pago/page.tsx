@@ -85,8 +85,24 @@ setEstado(estadoLS);
 setCiudad(ciudadLS);
 
 },[]);
-async function pagar(){
+function generarCodigoEvento(nombre: string) {
 
+  const slug = nombre
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  const random = Math.random()
+    .toString(36)
+    .substring(2, 8);
+
+  return `${slug}-${random}`;
+
+}
+async function pagar(){
+const codigoEvento = generarCodigoEvento(evento);
 let usuarioID:number;
 
 const { data:usuarioExistente } = await supabase
@@ -148,6 +164,8 @@ const { error:errorEvento } = await supabase
 usuario_id:usuarioID,
 
 nombre_evento:evento,
+
+codigo:codigoEvento,
 
 tipo_evento:tipoEvento,
 

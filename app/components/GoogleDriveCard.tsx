@@ -84,7 +84,7 @@ const data = await response.json();
 
 console.log("Respuesta API:", data);
 
-if(data.error){
+if (data.error) {
 
     setError(data.error);
 
@@ -111,8 +111,6 @@ setDatos(data);
 }
 
 cargarDrive();
-
-    cargarDrive();
 
 }, [usuarioID]);
 
@@ -143,19 +141,6 @@ if(error){
     );
 
 }
-if(!datos){
-
-    return(
-
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-
-            No hay información de Google Drive.
-
-        </div>
-
-    );
-
-}
 
   // ------------------------------
 
@@ -163,7 +148,7 @@ if(!datos){
 
   // ------------------------------
 
-  if (!datos.conectado) {
+if (!datos || !datos.conectado) {
 
     return (
 
