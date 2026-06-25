@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import {
+
+buscarOCrearCarpetaEvento,
+
+subirArchivoDrive
+
+} from "@/lib/googleDriveUpload";
 
 export async function POST(request: NextRequest) {
 
@@ -38,6 +45,33 @@ formData.get("codigoEvento") as string;
     .eq("usuario_id", evento.usuario_id)
     .single();
 
+    const carpetaEvento=
+
+await buscarOCrearCarpetaEvento(
+
+drive.access_token,
+
+drive.drive_folder_root_id,
+
+evento.nombre_evento
+
+);
+const archivoDrive=
+
+await subirArchivoDrive(
+
+drive.access_token,
+
+carpetaEvento.id,
+
+archivo
+
+);
+
+console.log(archivoDrive);
+
+console.log(carpetaEvento);
+
 if (errorDrive || !drive) {
 
     return NextResponse.json(
@@ -68,17 +102,9 @@ if (error || !evento) {
 
 return NextResponse.json({
 
-    ok: true,
+ok:true,
 
-    evento,
-
-    drive,
-
-    nombre: archivo.name,
-
-    tipo: archivo.type,
-
-    tamaño: archivo.size
+archivoDrive
 
 });
 
