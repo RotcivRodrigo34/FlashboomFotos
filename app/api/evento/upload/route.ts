@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
 
@@ -25,17 +26,37 @@ formData.get("codigoEvento") as string;
 
         }
 
-    return NextResponse.json({
+ const { data: evento, error } = await supabase
+    .from("eventos")
+    .select("*")
+    .eq("codigo", codigoEvento)
+    .single();
 
-    ok:true,
+if (error || !evento) {
 
-    codigoEvento,
+    return NextResponse.json(
+        {
+            ok: false,
+            mensaje: "Evento no encontrado."
+        },
+        {
+            status: 404
+        }
+    );
 
-    nombre:archivo.name,
+}
 
-    tipo:archivo.type,
+return NextResponse.json({
 
-    tamaño:archivo.size
+    ok: true,
+
+    evento,
+
+    nombre: archivo.name,
+
+    tipo: archivo.type,
+
+    tamaño: archivo.size
 
 });
 
