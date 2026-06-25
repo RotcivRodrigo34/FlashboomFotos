@@ -148,3 +148,46 @@ return data;
    
 
 }
+export async function hacerArchivoPublico(
+
+    accessToken:string,
+
+    fileId:string
+
+){
+
+    const response = await fetch(
+
+        `https://www.googleapis.com/drive/v3/files/${fileId}/permissions`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+
+                Authorization:`Bearer ${accessToken}`,
+
+                "Content-Type":"application/json"
+
+            },
+
+            body:JSON.stringify({
+
+                role:"reader",
+
+                type:"anyone"
+
+            })
+
+        }
+
+    );
+
+    const data = await response.json();
+
+    console.log("PERMISOS GOOGLE:");
+
+    console.log(data);
+
+}

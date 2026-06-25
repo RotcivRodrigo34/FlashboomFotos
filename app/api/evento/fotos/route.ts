@@ -1,3 +1,4 @@
+console.log("VERSION NUEVA DE LA API");
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -40,7 +41,8 @@ export async function GET(request: NextRequest) {
 
         .select("*")
 
-        .eq("evento_id", evento.id)
+       .eq("evento_id", evento.id)
+.not("google_file_id","is",null)
 
         .order("id", { ascending: false });
 
@@ -52,7 +54,8 @@ export async function GET(request: NextRequest) {
         });
 
     }
-
+console.log("FOTOS API:");
+console.log(fotos);
     return NextResponse.json({
 
         ok: true,

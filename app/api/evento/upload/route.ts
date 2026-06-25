@@ -5,7 +5,9 @@ import {
 
 buscarOCrearCarpetaEvento,
 
-subirArchivoDrive
+subirArchivoDrive,
+
+hacerArchivoPublico
 
 } from "@/lib/googleDriveUpload";
 
@@ -106,6 +108,20 @@ await subirArchivoDrive(
     carpetaEvento.id,
 
     archivo
+
+);
+await hacerArchivoPublico(
+
+    accessToken,
+
+    archivoDrive.id
+
+);
+await hacerArchivoPublico(
+
+    accessToken,
+
+    archivoDrive.id
 
 );
 if (archivoDrive.error) {

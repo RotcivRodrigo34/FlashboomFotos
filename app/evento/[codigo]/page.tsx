@@ -79,7 +79,11 @@ if (error || !evento) {
 
 />
 
-  <MomentosCompartidos/>
+<MomentosCompartidos
+
+    codigoEvento={codigo}
+
+/>
 
 </section>
 
