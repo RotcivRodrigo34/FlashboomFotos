@@ -67,7 +67,41 @@ carpetaEvento.id,
 archivo
 
 );
+const { error: errorFoto } = await supabase
 
+.from("fotos_evento")
+
+.insert({
+
+    evento_id: evento.id,
+
+    usuario_id: evento.usuario_id,
+
+    google_file_id: archivoDrive.id,
+
+    google_url: archivoDrive.webViewLink,
+
+    nombre_archivo: archivo.name,
+
+    peso: archivo.size,
+
+    mime_type: archivo.type,
+
+    estado: "ACTIVO"
+
+});
+
+if(errorFoto){
+
+    return NextResponse.json({
+
+        ok:false,
+
+        mensaje:errorFoto.message
+
+    });
+
+}
 console.log(archivoDrive);
 
 console.log(carpetaEvento);
@@ -102,9 +136,11 @@ if (error || !evento) {
 
 return NextResponse.json({
 
-ok:true,
+    ok:true,
 
-archivoDrive
+    mensaje:"Fotografía subida correctamente.",
+
+    archivoDrive
 
 });
 
