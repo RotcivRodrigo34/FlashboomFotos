@@ -32,6 +32,26 @@ formData.get("codigoEvento") as string;
     .eq("codigo", codigoEvento)
     .single();
 
+    const { data: drive, error: errorDrive } = await supabase
+    .from("google_drive")
+    .select("*")
+    .eq("usuario_id", evento.usuario_id)
+    .single();
+
+if (errorDrive || !drive) {
+
+    return NextResponse.json(
+        {
+            ok: false,
+            mensaje: "El organizador aún no ha conectado Google Drive."
+        },
+        {
+            status: 400
+        }
+    );
+
+}
+
 if (error || !evento) {
 
     return NextResponse.json(
@@ -51,6 +71,8 @@ return NextResponse.json({
     ok: true,
 
     evento,
+
+    drive,
 
     nombre: archivo.name,
 
