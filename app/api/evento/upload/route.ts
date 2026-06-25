@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { obtenerAccessTokenValido } from "@/lib/googleToken";
 import {
 
 buscarOCrearCarpetaEvento,
@@ -9,6 +10,7 @@ subirArchivoDrive
 } from "@/lib/googleDriveUpload";
 
 export async function POST(request: NextRequest) {
+    console.log("VERSION NUEVA ROUTE");
 
     try {
 
@@ -33,41 +35,100 @@ formData.get("codigoEvento") as string;
 
         }
 
- const { data: evento, error } = await supabase
+ const { data: evento, error } = await supabaseAdmin
     .from("eventos")
     .select("*")
     .eq("codigo", codigoEvento)
     .single();
 
-    const { data: drive, error: errorDrive } = await supabase
+    if (error || !evento) {
+
+    return NextResponse.json(
+        {
+            ok: false,
+            mensaje: "Evento no encontrado."
+        },
+        {
+            status: 404
+        }
+    );
+
+}
+
+    const { data: drive, error: errorDrive } = await supabaseAdmin
+    
     .from("google_drive")
     .select("*")
     .eq("usuario_id", evento.usuario_id)
     .single();
+console.log("================================");
+console.log("USUARIO DEL EVENTO:", evento.usuario_id);
+console.log("DRIVE:", drive);
+console.log("ERROR DRIVE:", errorDrive);
+console.log("================================");
+    if (errorDrive || !drive) {
 
-    const carpetaEvento=
+    return NextResponse.json(
+        {
+            ok: false,
+            mensaje: "El organizador aún no ha conectado Google Drive."
+        },
+        {
+            status: 400
+        }
+    );
 
+}
+console.log("EVENTO:", evento);
+
+console.log("DRIVE:", drive);
+
+console.log("ERROR DRIVE:", errorDrive);
+const accessToken = await obtenerAccessTokenValido(
+    evento.usuario_id
+);
+
+const carpetaEvento =
 await buscarOCrearCarpetaEvento(
 
-drive.access_token,
+    accessToken,
 
-drive.drive_folder_root_id,
+    drive.drive_folder_root_id,
 
-evento.nombre_evento
+    evento.nombre_evento
 
 );
-const archivoDrive=
-
+const archivoDrive =
 await subirArchivoDrive(
 
-drive.access_token,
+    accessToken,
 
-carpetaEvento.id,
+    carpetaEvento.id,
 
-archivo
+    archivo
 
 );
-const { error: errorFoto } = await supabase
+if (archivoDrive.error) {
+
+    return NextResponse.json({
+
+        ok: false,
+
+        mensaje: archivoDrive.error.message
+
+    });
+
+}
+console.log("Insertando foto:", {
+  evento_id: evento.id,
+  usuario_id: evento.usuario_id,
+  google_file_id: archivoDrive.id,
+  google_url: archivoDrive.webViewLink,
+  nombre_archivo: archivo.name,
+  peso: archivo.size,
+  mime_type: archivo.type
+});
+const { error: errorFoto } = await supabaseAdmin
 
 .from("fotos_evento")
 
@@ -106,33 +167,9 @@ console.log(archivoDrive);
 
 console.log(carpetaEvento);
 
-if (errorDrive || !drive) {
 
-    return NextResponse.json(
-        {
-            ok: false,
-            mensaje: "El organizador aún no ha conectado Google Drive."
-        },
-        {
-            status: 400
-        }
-    );
 
-}
 
-if (error || !evento) {
-
-    return NextResponse.json(
-        {
-            ok: false,
-            mensaje: "Evento no encontrado."
-        },
-        {
-            status: 404
-        }
-    );
-
-}
 
 return NextResponse.json({
 
@@ -146,20 +183,19 @@ return NextResponse.json({
 
     }
 
-    catch (error) {
+catch (error) {
 
-        console.log(error);
+    console.error("========== ERROR ==========");
+    console.error(error);
+    console.error("===========================");
 
-        return NextResponse.json(
-            {
-                ok: false,
-                mensaje: "Error al procesar la imagen."
-            },
-            {
-                status: 500
-            }
-        );
+    return NextResponse.json({
+        ok: false,
+        mensaje: error instanceof Error
+            ? error.message
+            : JSON.stringify(error)
+    });
 
-    }
+}
 
 }

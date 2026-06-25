@@ -138,7 +138,13 @@ export async function subirArchivoDrive(
         }
 
     );
+const data = await response.json();
 
-    return await response.json();
+console.log("RESPUESTA GOOGLE DRIVE:");
+
+console.log(data);
+
+return data;
+   
 
 }
