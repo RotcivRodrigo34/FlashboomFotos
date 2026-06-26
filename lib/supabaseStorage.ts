@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "./supabaseAdmin";
-
+import { writeFile } from "fs/promises";
 export async function subirMiniatura(
 
     nombreArchivo: string,

@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
 
         const archivo = formData.get("foto") as File | null;
+
+        console.log("Nombre:", archivo?.name);
+console.log("Tipo:", archivo?.type);
+console.log("Tamaño:", archivo?.size);
         const codigoEvento=
 
 formData.get("codigoEvento") as string;
@@ -115,16 +119,21 @@ await subirArchivoDrive(
 const buffer = Buffer.from(
     await archivo.arrayBuffer()
 );
+const metadata = await sharp(buffer).metadata();
 
+console.log(metadata);
 const miniatura = await sharp(buffer)
+    .rotate() // Respeta la orientación del iPhone
     .resize(800, 800, {
         fit: "cover",
         position: "centre"
     })
     .jpeg({
-        quality: 80
+        quality: 80,
+        mozjpeg: true
     })
     .toBuffer();
+console.log("Miniatura bytes:", miniatura.length);
 
     const thumbnail = await subirMiniatura(
 
