@@ -14,6 +14,7 @@ hacerArchivoPublico
 } from "@/lib/googleDriveUpload";
 
 export async function POST(request: NextRequest) {
+    console.log("======== UPLOAD NUEVO ========");
     console.log("VERSION NUEVA ROUTE");
 
     try {

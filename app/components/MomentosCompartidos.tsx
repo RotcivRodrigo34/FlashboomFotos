@@ -118,25 +118,19 @@ console.log(fotos);
 
 <div
     key={foto.id}
-    className="
-        relative
-        aspect-square
-        rounded-xl
-        overflow-hidden
-        shadow-sm
-    "
+    className="relative aspect-square rounded-xl overflow-hidden border"
 >
+
+    <p className="absolute top-0 left-0 z-10 text-[9px] bg-white">
+        {foto.thumbnail_url}
+    </p>
 
     <img
         src={foto.thumbnail_url}
-        alt={foto.nombre_archivo}
-        className="
-            w-full
-            h-full
-            object-cover
-            hover:scale-105
-            transition
-        "
+        alt=""
+        className="w-full h-full object-cover"
+        onLoad={() => console.log("OK:", foto.thumbnail_url)}
+        onError={() => console.log("ERROR:", foto.thumbnail_url)}
     />
 
 </div>
