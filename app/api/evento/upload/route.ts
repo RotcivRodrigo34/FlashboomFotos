@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
         console.log("Nombre:", archivo?.name);
 console.log("Tipo:", archivo?.type);
 console.log("Tamaño:", archivo?.size);
+
+
         const codigoEvento=
 
 formData.get("codigoEvento") as string;
@@ -121,10 +123,18 @@ const buffer = Buffer.from(
     await archivo.arrayBuffer()
 );
 const metadata = await sharp(buffer).metadata();
+console.log("========== METADATA ==========");
+console.log(JSON.stringify(metadata, null, 2));
+console.log("Formato detectado:", metadata.format);
+console.log("Espacio de color:", metadata.space);
+console.log("Orientación:", metadata.orientation);
+console.log("==============================");
+
 
 console.log(metadata);
+
 const miniatura = await sharp(buffer)
-    .rotate() // Respeta la orientación del iPhone
+    .rotate()
     .resize(800, 800, {
         fit: "cover",
         position: "centre"
