@@ -1,4 +1,5 @@
 import HeroCarousel from "@/app/components/HeroCarousel";
+import EventoFotos from "@/app/components/EventoFotos";
 import MomentosCompartidos from "@/app/components/MomentosCompartidos";
 import UploadButton from "@/app/components/UploadButton";
 import { supabase } from "@/lib/supabase";
@@ -73,13 +74,7 @@ if (error || !evento) {
 
 <section className="px-5 mt-5">
 
- <UploadButton
-
-    codigoEvento={codigo}
-
-/>
-
-<MomentosCompartidos
+<EventoFotos
 
     codigoEvento={codigo}
 

@@ -7,6 +7,8 @@ interface Props{
 
     codigoEvento:string;
 
+    refresh:number;
+
 }
 
 interface Foto{
@@ -15,13 +17,16 @@ interface Foto{
 
     google_file_id:string;
 
+    thumbnail_url:string;
+
     nombre_archivo:string;
 
 }
-
 export default function MomentosCompartidos({
 
-    codigoEvento
+    codigoEvento,
+
+    refresh
 
 }:Props){
 
@@ -53,7 +58,7 @@ export default function MomentosCompartidos({
 
         cargarFotos();
 
-    },[codigoEvento]);
+    },[codigoEvento,refresh]);
 console.log(fotos);
     return(
 
@@ -105,25 +110,36 @@ console.log(fotos);
 
             <div className="grid grid-cols-3 gap-2">
 
-        {fotos.map((foto) => {
+{fotos.map((foto) => {
 
-    console.log(foto);
+    console.log("FOTO:", foto);
 
     return (
 
-        <div
-            key={foto.id}
-            className="border p-2 text-xs"
-        >
-
-         <a
-    href={`https://drive.google.com/uc?export=view&id=${foto.google_file_id}`}
-    target="_blank"
-    rel="noreferrer"
+<div
+    key={foto.id}
+    className="
+        relative
+        aspect-square
+        rounded-xl
+        overflow-hidden
+        shadow-sm
+    "
 >
-    Abrir imagen
-</a>
-        </div>
+
+    <img
+        src={foto.thumbnail_url}
+        alt={foto.nombre_archivo}
+        className="
+            w-full
+            h-full
+            object-cover
+            hover:scale-105
+            transition
+        "
+    />
+
+</div>
 
     );
 

@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
        .eq("evento_id", evento.id)
 .not("google_file_id","is",null)
 
-        .order("id", { ascending: false });
+      .order("id", { ascending: false })
+.limit(6);
 
     if (error) {
 

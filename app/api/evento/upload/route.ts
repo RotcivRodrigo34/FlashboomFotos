@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { obtenerAccessTokenValido } from "@/lib/googleToken";
+import { subirMiniatura } from "@/lib/supabaseStorage";
+import sharp from "sharp";
 import {
 
 buscarOCrearCarpetaEvento,
@@ -110,13 +112,34 @@ await subirArchivoDrive(
     archivo
 
 );
-await hacerArchivoPublico(
+const buffer = Buffer.from(
+    await archivo.arrayBuffer()
+);
 
-    accessToken,
+const miniatura = await sharp(buffer)
+    .resize(800, 800, {
+        fit: "cover",
+        position: "centre"
+    })
+    .jpeg({
+        quality: 80
+    })
+    .toBuffer();
 
-    archivoDrive.id
+    const thumbnail = await subirMiniatura(
+
+    archivo.name,
+
+    miniatura
 
 );
+
+console.log("Miniatura:");
+
+console.log(thumbnail);
+
+console.log(miniatura.length);
+
 await hacerArchivoPublico(
 
     accessToken,
@@ -157,6 +180,7 @@ const { error: errorFoto } = await supabaseAdmin
     google_file_id: archivoDrive.id,
 
     google_url: archivoDrive.webViewLink,
+    thumbnail_url: thumbnail.publicUrl,
 
     nombre_archivo: archivo.name,
 
@@ -165,6 +189,7 @@ const { error: errorFoto } = await supabaseAdmin
     mime_type: archivo.type,
 
     estado: "ACTIVO"
+    
 
 });
 
