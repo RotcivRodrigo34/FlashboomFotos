@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { obtenerAccessTokenValido } from "@/lib/googleToken";
 import { subirMiniatura } from "@/lib/supabaseStorage";
-import { writeFile } from "fs/promises";
+
 import sharp from "sharp";
 import {
 
@@ -158,14 +158,15 @@ console.log("Miniatura bytes:", miniatura.length);
 
 console.log("Subiendo miniatura a Supabase...");
 
-    const thumbnail = await subirMiniatura(
-
-    archivo.name,
-
+const thumbnail = await subirMiniatura(
+    archivo.name.replace(/\.(png|jpg|jpeg|heic)$/i, ".jpg"),
     miniatura
-
 );
+    
 
+
+console.log("Miniatura tamaño:", miniatura.length);
+console.log(miniatura.slice(0,20));
 console.log("Miniatura subida correctamente");
 console.log(thumbnail);
 
