@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "./supabaseAdmin";
-import { writeFile } from "fs/promises";
+
 export async function subirMiniatura(
 
     nombreArchivo: string,
@@ -8,19 +8,20 @@ export async function subirMiniatura(
 
 ) {
 
-   const ruta = `${Date.now()}-${nombreArchivo}`;
+   const ruta = `${Date.now()}-thumb.jpg`;
 
     const { data, error } = await supabaseAdmin.storage
 
         .from("thumbnails")
 
-        .upload(ruta, buffer, {
-
-            contentType: "image/jpeg",
-
-            upsert: false
-
-        });
+     .upload(
+    ruta,
+    new Uint8Array(buffer),
+    {
+        contentType: "image/jpeg",
+        upsert: false
+    }
+);
 
     if (error) {
 
