@@ -132,23 +132,47 @@ console.log("BUFFER:", buffer.length);
 console.log("================================");
 
 const metadata = await sharp(buffer).metadata();
-console.log(metadata);
+
 console.log("========== METADATA ==========");
-console.log(JSON.stringify(metadata, null, 2));
+console.log({
+    format: metadata.format,
+    width: metadata.width,
+    height: metadata.height,
+    orientation: metadata.orientation
+});
 console.log("==============================");
+console.log("EMPEZANDO SHARP RESIZE...");
+console.log("EMPEZANDO SHARP RESIZE...");
 
+let miniatura: Buffer;
 
-const miniatura = await sharp(buffer)
-    .rotate()
-    .resize(800, 800, {
-        fit: "cover",
-        position: "centre"
-    })
-    .jpeg({
-        quality: 80,
-        mozjpeg: true
-    })
-    .toBuffer();
+try {
+
+    miniatura = await sharp(buffer)
+        .rotate()
+        .resize({
+            width: 800,
+            height: 800,
+            fit: "inside",
+            withoutEnlargement: true
+        })
+        .jpeg({
+            quality: 80,
+            mozjpeg: true
+        })
+        .toBuffer();
+
+    console.log("SHARP TERMINÓ");
+    console.log("Miniatura:", miniatura.length);
+
+} catch (e) {
+
+    console.error("ERROR EN SHARP");
+    console.error(e);
+    throw e;
+
+}
+
 console.log("Miniatura guardada localmente");
 
 console.log("MINIATURA GENERADA");
@@ -162,13 +186,11 @@ const thumbnail = await subirMiniatura(
     archivo.name.replace(/\.(png|jpg|jpeg|heic)$/i, ".jpg"),
     miniatura
 );
-    
-
-
+    console.log("Miniatura subida correctamente");
+console.log(thumbnail);
 console.log("Miniatura tamaño:", miniatura.length);
 console.log(miniatura.slice(0,20));
-console.log("Miniatura subida correctamente");
-console.log(thumbnail);
+
 
 console.log(miniatura.length);
 
