@@ -30,6 +30,7 @@ export default function MomentosCompartidos({
 }:Props){
 
     const [fotos,setFotos]=useState<Foto[]>([]);
+    const [totalFotos, setTotalFotos] = useState(0);
 
     const [cargando,setCargando]=useState(true);
 
@@ -45,11 +46,12 @@ export default function MomentosCompartidos({
 
             const data=await response.json();
 
-            if(data.ok){
+           if (data.ok) {
 
-                setFotos(data.fotos);
+    setFotos(data.fotos);
+    setTotalFotos(data.totalFotos);
 
-            }
+}
 
             setCargando(false);
 
@@ -73,7 +75,7 @@ export default function MomentosCompartidos({
 
                 <span className="text-sm text-gray-500">
 
-                    {fotos.length} fotos
+                   {fotos.length} fotos
 
                 </span>
 
