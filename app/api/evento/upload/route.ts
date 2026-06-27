@@ -149,10 +149,6 @@ const miniatura = await sharp(buffer)
         mozjpeg: true
     })
     .toBuffer();
-    await writeFile(
-    "./miniatura.jpg",
-    miniatura
-);
 console.log("Miniatura guardada localmente");
 
 console.log("MINIATURA GENERADA");
