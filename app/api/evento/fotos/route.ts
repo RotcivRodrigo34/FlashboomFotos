@@ -54,7 +54,8 @@ const { count } = await supabaseAdmin
         });
 
     }
-
+console.log("TOTAL FOTOS:", count);
+console.log("FOTOS ENVIADAS:", fotos.length);
    return NextResponse.json({
     ok: true,
     fotos,
