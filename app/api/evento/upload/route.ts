@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { obtenerAccessTokenValido } from "@/lib/googleToken";
 import { subirMiniatura } from "@/lib/supabaseStorage";
+import { writeFile } from "fs/promises";
 import sharp from "sharp";
 import {
 
@@ -122,16 +123,20 @@ await subirArchivoDrive(
 const buffer = Buffer.from(
     await archivo.arrayBuffer()
 );
+
+
+console.log("================================");
+console.log("NOMBRE:", archivo.name);
+console.log("TIPO:", archivo.type);
+console.log("BUFFER:", buffer.length);
+console.log("================================");
+
 const metadata = await sharp(buffer).metadata();
+console.log(metadata);
 console.log("========== METADATA ==========");
 console.log(JSON.stringify(metadata, null, 2));
-console.log("Formato detectado:", metadata.format);
-console.log("Espacio de color:", metadata.space);
-console.log("Orientación:", metadata.orientation);
 console.log("==============================");
 
-
-console.log(metadata);
 
 const miniatura = await sharp(buffer)
     .rotate()
@@ -144,7 +149,18 @@ const miniatura = await sharp(buffer)
         mozjpeg: true
     })
     .toBuffer();
+    await writeFile(
+    "./miniatura.jpg",
+    miniatura
+);
+console.log("Miniatura guardada localmente");
+
+console.log("MINIATURA GENERADA");
+console.log("Bytes:", miniatura.length);
+
 console.log("Miniatura bytes:", miniatura.length);
+
+console.log("Subiendo miniatura a Supabase...");
 
     const thumbnail = await subirMiniatura(
 
@@ -154,8 +170,7 @@ console.log("Miniatura bytes:", miniatura.length);
 
 );
 
-console.log("Miniatura:");
-
+console.log("Miniatura subida correctamente");
 console.log(thumbnail);
 
 console.log(miniatura.length);
