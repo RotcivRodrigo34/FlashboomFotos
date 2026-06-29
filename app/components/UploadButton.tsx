@@ -19,9 +19,18 @@ export default function UploadButton({
 }:Props){
 
   const inputFile = useRef<HTMLInputElement>(null);
-  const [subiendo, setSubiendo] = useState(false);
+
+const [subiendo, setSubiendo] = useState(false);
 
 const [mensaje, setMensaje] = useState("");
+
+const [totalFotos, setTotalFotos] = useState(0);
+
+const [fotosSubidas, setFotosSubidas] = useState(0);
+
+const [enCola, setEnCola] = useState(false);
+
+
 
 
 async function subirArchivo(
@@ -31,6 +40,15 @@ async function subirArchivo(
     if (!e.target.files?.length) return;
 
     const fotos = Array.from(e.target.files);
+
+setTotalFotos(fotos.length);
+
+setFotosSubidas(0);
+
+setEnCola(true);
+
+
+
 
     setSubiendo(true);
     setMensaje("");
@@ -49,11 +67,15 @@ async function subirArchivo(
 
         const data = await response.json();
 
-        if (data.ok) {
+if (data.ok) {
 
-            onUploadComplete();
+    onUploadComplete();
 
-        } else {
+    setFotosSubidas(prev => prev + 1);
+
+}
+
+else {
 
             setMensaje("❌ " + data.mensaje);
             break;
@@ -63,6 +85,23 @@ async function subirArchivo(
     }
 
     setSubiendo(false);
+
+{
+    enCola && (
+
+        <p className="text-center text-sm text-gray-600 mt-3">
+
+            📤 Subiendo {fotosSubidas} de {totalFotos} fotografías...
+
+        </p>
+
+    )
+}
+
+
+
+setEnCola(false);
+
 
     setMensaje("✅ ¡Todas las fotografías fueron subidas!");
 
