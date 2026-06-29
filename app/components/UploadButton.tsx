@@ -23,62 +23,68 @@ export default function UploadButton({
 
 const [mensaje, setMensaje] = useState("");
 
-  async function subirArchivo(
+
+async function subirArchivo(
     e: React.ChangeEvent<HTMLInputElement>
-  ) {
+) {
 
     if (!e.target.files?.length) return;
 
-    const foto = e.target.files[0];
+    const fotos = Array.from(e.target.files);
+
     setSubiendo(true);
+    setMensaje("");
 
-setMensaje("");
+    for (const foto of fotos) {
 
-const formData = new FormData();
+        const formData = new FormData();
 
-formData.append("foto", foto);
+        formData.append("foto", foto);
+        formData.append("codigoEvento", codigoEvento);
 
-formData.append("codigoEvento", codigoEvento);
+        const response = await fetch("/api/evento/upload", {
+            method: "POST",
+            body: formData
+        });
 
-    const response = await fetch("/api/evento/upload", {
-      method: "POST",
-      body: formData
-    });
+        const data = await response.json();
 
-const data = await response.json();
+        if (data.ok) {
 
-console.log(data);
+            onUploadComplete();
 
-setSubiendo(false);
+        } else {
 
-if(data.ok){
+            setMensaje("❌ " + data.mensaje);
+            break;
 
-    onUploadComplete();
+        }
 
-    setMensaje("✅ ¡Fotografía subida correctamente!");
+    }
 
-    setTimeout(()=>{
+    setSubiendo(false);
+
+    setMensaje("✅ ¡Todas las fotografías fueron subidas!");
+
+    setTimeout(() => {
 
         setMensaje("");
 
-    },3000);
-
-}else{
-
-    setMensaje("❌ "+data.mensaje);
+    }, 3000);
 
 }
 
-  }
+
 
   return (
 
     <>
 
-      <input
-        ref={inputFile}
-        type="file"
-        accept="image/*"
+    <input
+    ref={inputFile}
+    type="file"
+    accept="image/*"
+    multiple
         className="hidden"
         onChange={subirArchivo}
       />
