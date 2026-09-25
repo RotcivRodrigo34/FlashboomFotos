@@ -4,9 +4,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request: NextRequest) {
 
-    const codigoEvento =
-        request.nextUrl.searchParams.get("codigo");
-
+    const codigoEvento = request.nextUrl.searchParams.get("codigo");
+    const todas = request.nextUrl.searchParams.get("todas") === "true";
     if (!codigoEvento) {
 
         return NextResponse.json({
@@ -39,14 +38,18 @@ const { count } = await supabaseAdmin
     .eq("evento_id", evento.id)
     .eq("estado", "ACTIVO");
 
-    const { data: fotos, error } = await supabaseAdmin
+ let query = supabaseAdmin
+.from("fotos_evento")
+.select("*")
+.eq("evento_id", evento.id)
+.not("google_file_id", "is", null)
+.order("id", { ascending: false });
+if (!todas) {
+    query = query.limit(6);
+}
 
-        .from("fotos_evento")
-        .select("*")
-        .eq("evento_id", evento.id)
-        .not("google_file_id","is",null)
-        .order("id", { ascending: false })
-        .limit(6);
+const { data: fotos, error } = await query;
+
         if (error) {
            return NextResponse.json({
            ok: false,
