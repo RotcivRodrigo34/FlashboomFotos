@@ -99,6 +99,15 @@ abierto===index&&(
       <button className="border rounded-2xl py-3 hover:bg-violet-50">
          🔳 QR
       </button>
+<button
+   onClick={(e) => {
+      e.stopPropagation();
+      window.location.href = `/dashboard/evento/${index}/portada`;
+   }}
+   className="border rounded-2xl py-3 hover:bg-violet-50"
+>
+   🖼️ Portada
+</button>
    </div>
 </div>
 

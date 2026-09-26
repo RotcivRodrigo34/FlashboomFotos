@@ -39,12 +39,20 @@ if (error || !evento) {
   notFound();
 
 }
+
+const { data: imagenesPortada } = await supabase
+  .from("imagenes_portada")
+  .select("imagen_url, posicion")
+  .eq("evento_id", evento.id)
+  .order("posicion", { ascending: true });
+
+const portadas = imagenesPortada?.map((imagen) => imagen.imagen_url) || [];
   
   return (
 
 <main className="bg-white min-h-screen">
    <div className="w-full max-w-[430px] mx-auto">
-        <HeroCarousel/>
+       <HeroCarousel imagenes={portadas} />
         <section className="px-5 mt-4 text-center">
 
    <h1 className="text-2xl font-bold text-gray-900">
