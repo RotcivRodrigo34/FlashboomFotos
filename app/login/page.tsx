@@ -43,12 +43,19 @@ return;
 }
 localStorage.setItem("logueado","true");
 
+localStorage.setItem("logueado", "true");
+
 localStorage.setItem(
+  "usuarioID",
+  data[0].id.toString()
+);
 
-"usuarioID",
+// La sesión dura 2 horas
+const expiracion = Date.now() + (2 * 60 * 60 * 1000);
 
-data[0].id.toString()
-
+localStorage.setItem(
+  "sesionExpira",
+  expiracion.toString()
 );
 window.location.href="/dashboard";
 
