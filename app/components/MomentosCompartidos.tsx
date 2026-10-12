@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -61,8 +61,8 @@ export default function MomentosCompartidos({
     /*
      * Fotos disponibles para navegar.
      *
-     * Si la foto fue abierta desde "Ver galería",
-     * usamos todas las fotografías.
+     * Si la foto fue abierta desde "Ver galerÃ­a",
+     * usamos todas las fotografÃ­as.
      *
      * Si fue abierta desde las 6 fotos principales,
      * navegamos entre esas 6.
@@ -72,7 +72,7 @@ export default function MomentosCompartidos({
         : fotos;
 
     /*
-     * Ir a la siguiente fotografía
+     * Ir a la siguiente fotografÃ­a
      */
     function siguienteFoto() {
 
@@ -97,7 +97,7 @@ export default function MomentosCompartidos({
     }
 
     /*
-     * Ir a la fotografía anterior
+     * Ir a la fotografÃ­a anterior
      */
     function anteriorFoto() {
 
@@ -125,8 +125,8 @@ export default function MomentosCompartidos({
     /*
      * Teclado:
      *
-     * ← fotografía anterior
-     * → fotografía siguiente
+     * â† fotografÃ­a anterior
+     * â†’ fotografÃ­a siguiente
      * ESC cerrar
      */
     useEffect(() => {
@@ -210,7 +210,7 @@ export default function MomentosCompartidos({
 
         /*
          * Deslizar hacia la izquierda
-         * → siguiente foto
+         * â†’ siguiente foto
          */
         if (distancia > distanciaMinima) {
             siguienteFoto();
@@ -218,7 +218,7 @@ export default function MomentosCompartidos({
 
         /*
          * Deslizar hacia la derecha
-         * → foto anterior
+         * â†’ foto anterior
          */
         if (distancia < -distanciaMinima) {
             anteriorFoto();
@@ -248,7 +248,7 @@ export default function MomentosCompartidos({
                 cargando && (
 
                     <p className="text-center text-gray-400 py-10">
-                        Cargando fotografías...
+                        Cargando fotografÃ­as...
                     </p>
 
                 )
@@ -258,7 +258,7 @@ export default function MomentosCompartidos({
                 !cargando && fotos.length === 0 && (
 
                     <p className="text-center text-gray-400 py-10">
-                        Aún no hay fotografías.
+                        AÃºn no hay fotografÃ­as.
                     </p>
 
                 )
@@ -332,7 +332,7 @@ export default function MomentosCompartidos({
                         hover:text-gray-900
                     "
                 >
-                    Ver galería
+                    Ver galerÃ­a
                 </button>
 
             </div>
@@ -354,7 +354,7 @@ export default function MomentosCompartidos({
                         <div className="flex items-center justify-between mb-5">
 
                             <h2 className="text-xl font-bold text-gray-900">
-                                Galería
+                                GalerÃ­a
                             </h2>
 
                             <button
@@ -370,9 +370,9 @@ export default function MomentosCompartidos({
                                     items-center
                                     justify-center
                                 "
-                                aria-label="Cerrar galería"
+                                aria-label="Cerrar galerÃ­a"
                             >
-                                ×
+                                Ã—
                             </button>
 
                         </div>
@@ -458,9 +458,9 @@ export default function MomentosCompartidos({
                                 justify-center
                                 z-20
                             "
-                            aria-label="Cerrar fotografía"
+                            aria-label="Cerrar fotografÃ­a"
                         >
-                            ×
+                            Ã—
                         </button>
 
                         {/* Flecha izquierda */}
@@ -491,15 +491,15 @@ export default function MomentosCompartidos({
                                         justify-center
                                         transition
                                     "
-                                    aria-label="Fotografía anterior"
+                                    aria-label="FotografÃ­a anterior"
                                 >
-                                    ‹
+                                    â€¹
                                 </button>
 
                             )
                         }
 
-                        {/* Fotografía */}
+                        {/* FotografÃ­a */}
 
                         <img
                             src={fotoSeleccionada.thumbnail_url}
@@ -542,35 +542,35 @@ export default function MomentosCompartidos({
                                         justify-center
                                         transition
                                     "
-                                    aria-label="Fotografía siguiente"
+                                    aria-label="FotografÃ­a siguiente"
                                 >
-                                    ›
+                                    â€º
                                 </button>
 
                             )
                         }
 
                         {/* Descargar */}
+<a
+    href={`/api/evento/download/${fotoSeleccionada.id}?codigo=${encodeURIComponent(codigoEvento)}`}
+    className="
+        absolute
+        bottom-6
+        left-1/2
+        -translate-x-1/2
+        bg-white
+        text-gray-900
+        px-5
+        py-2
+        rounded-full
+        font-semibold
+        shadow-lg
+        z-20
+    "
+>
+    Descargar
+</a>
 
-                        <a
-                            href={`/api/evento/download/${fotoSeleccionada.id}`}
-                            className="
-                                absolute
-                                bottom-6
-                                left-1/2
-                                -translate-x-1/2
-                                bg-white
-                                text-gray-900
-                                px-5
-                                py-2
-                                rounded-full
-                                font-semibold
-                                shadow-lg
-                                z-20
-                            "
-                        >
-                            Descargar
-                        </a>
 
                     </div>
 

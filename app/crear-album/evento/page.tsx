@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState,useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 export default function Evento() {
    const [evento,setEvento]=useState("");
 
@@ -22,55 +23,47 @@ const [errorFecha,setErrorFecha]=useState("");
 const [errorEstado,setErrorEstado]=useState("");
 
 const [errorCiudad,setErrorCiudad]=useState("");
-useEffect(()=>{
 
-const nombre=localStorage.getItem("nombre");
+useEffect(() => {
+  let cancelado = false;
 
-const celular=localStorage.getItem("celular");
+  async function verificarSesion() {
+    const supabase = createClient();
 
-const correo=localStorage.getItem("correo");
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-const password=localStorage.getItem("password");
+    if (cancelado) return;
 
-if(
+    if (error || !user) {
+      window.location.href = "/login";
+      return;
+    }
 
-!nombre||
+    // La sesión ya está validada. No exigimos datos de registro
+    // guardados en localStorage para continuar con el evento.
+    const eventoGuardado = localStorage.getItem("evento");
+    const tipoGuardado = localStorage.getItem("tipoEvento");
+    const fechaGuardada = localStorage.getItem("fecha");
+    const estadoGuardado = localStorage.getItem("estado");
+    const ciudadGuardada = localStorage.getItem("ciudad");
 
-!celular||
+    if (eventoGuardado) setEvento(eventoGuardado);
+    if (tipoGuardado) setTipoEvento(tipoGuardado);
+    if (fechaGuardada) setFecha(fechaGuardada);
+    if (estadoGuardado) setEstado(estadoGuardado);
+    if (ciudadGuardada) setCiudad(ciudadGuardada);
+  }
 
-!correo||
+  verificarSesion();
 
-!password
+  return () => {
+    cancelado = true;
+  };
+}, []);
 
-){
-
-window.location.href="/crear-album";
-
-return;
-
-}
-
-const eventoGuardado=localStorage.getItem("evento");
-
-const tipoGuardado=localStorage.getItem("tipoEvento");
-
-const fechaGuardada=localStorage.getItem("fecha");
-
-const estadoGuardado=localStorage.getItem("estado");
-
-const ciudadGuardada=localStorage.getItem("ciudad");
-
-if(eventoGuardado)setEvento(eventoGuardado);
-
-if(tipoGuardado)setTipoEvento(tipoGuardado);
-
-if(fechaGuardada)setFecha(fechaGuardada);
-
-if(estadoGuardado)setEstado(estadoGuardado);
-
-if(ciudadGuardada)setCiudad(ciudadGuardada);
-
-},[]);
   return (
 
     <main className="min-h-screen bg-gradient-to-b from-white to-violet-50">

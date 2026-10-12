@@ -1,72 +1,93 @@
-import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 
-export async function GET(request: NextRequest) {
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-  const usuarioID = request.nextUrl.searchParams.get("usuario");
+export async function GET() {
+  try {
+    // Validar la sesión del usuario
+    const supabase = await createClient();
 
-  if (!usuarioID) {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    return NextResponse.json({
-
-      error: "Usuario no recibido"
-
-    });
-
-  }
-
-  const { data, error } = await supabase
-
-    .from("google_drive")
-
-   .select(
-
-`
-google_email,
-drive_folder_root_id,
-drive_folder_root_nombre,
-drive_total_storage,
-drive_used_storage,
-ultima_sincronizacion,
-conectado
-`
-
-)
-
-    .eq("usuario_id", Number(usuarioID))
-
-    .maybeSingle();
-
-if (error) {
-
-  return NextResponse.json(
-    {
-      error: error.message
-    },
-    {
-      status: 500
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "No has iniciado sesión." },
+        { status: 401 }
+      );
     }
-  );
 
-}
+    // Obtener el perfil vinculado a la cuenta autenticada
+    const { data: perfil, error: perfilError } = await supabaseAdmin
+      .from("usuarios")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
 
-// Usuario sin Google Drive conectado
-if (!data) {
+    if (perfilError) {
+      console.error("Error al consultar el perfil:", perfilError.message);
 
-  return NextResponse.json({
+      return NextResponse.json(
+        { error: "No fue posible validar tu perfil." },
+        { status: 500 }
+      );
+    }
 
-    conectado: false,
-    google_email: "",
-    drive_folder_root_id: "",
-    drive_folder_root_nombre: "",
-    drive_total_storage: null,
-    drive_used_storage: null,
-    ultima_sincronizacion: ""
+    if (!perfil) {
+      return NextResponse.json(
+        { error: "No se encontró tu perfil de usuario." },
+        { status: 403 }
+      );
+    }
 
-  });
+    // Consultar únicamente la conexión de Google Drive de ese perfil
+    const { data, error } = await supabaseAdmin
+      .from("google_drive")
+      .select(
+        `
+          google_email,
+          drive_folder_root_id,
+          drive_folder_root_nombre,
+          drive_total_storage,
+          drive_used_storage,
+          ultima_sincronizacion,
+          conectado
+        `
+      )
+      .eq("usuario_id", perfil.id)
+      .maybeSingle();
 
-}
+    if (error) {
+      console.error("Error al consultar Google Drive:", error.message);
 
-return NextResponse.json(data);
+      return NextResponse.json(
+        { error: "No fue posible consultar Google Drive." },
+        { status: 500 }
+      );
+    }
 
+    if (!data) {
+      return NextResponse.json({
+        conectado: false,
+        google_email: "",
+        drive_folder_root_id: "",
+        drive_folder_root_nombre: "",
+        drive_total_storage: null,
+        drive_used_storage: null,
+        ultima_sincronizacion: null,
+      });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Error en API de Google Drive:", error);
+
+    return NextResponse.json(
+      { error: "Ocurrió un error interno." },
+      { status: 500 }
+    );
+  }
 }
