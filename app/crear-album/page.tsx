@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 export default function CrearAlbum() {
+  const router = useRouter();
 
-const [nombre,setNombre]=useState("");
+  const [nombre, setNombre] = useState("");
 
 const [celular,setCelular]=useState("");
 
@@ -311,11 +312,10 @@ valido=false;
 
 if(!valido)return;
 
-localStorage.setItem("nombre",nombre);
+localStorage.setItem("nombre", nombre);
+localStorage.setItem("celular", celular);
 
-localStorage.setItem("celular",celular);
-
-window.location.href="/crear-album/datos";
+router.push("/crear-album/datos");
 
 }}
 

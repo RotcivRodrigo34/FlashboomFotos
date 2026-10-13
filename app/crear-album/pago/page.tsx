@@ -1,11 +1,31 @@
-
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+
+type RegistroTemporal = {
+  password: string;
+};
+
+type WindowConRegistro = Window & {
+  __flashboomRegistroTemporal?: RegistroTemporal;
+};
+
+function obtenerRegistroTemporal(): RegistroTemporal {
+  const ventana = window as WindowConRegistro;
+
+  if (!ventana.__flashboomRegistroTemporal) {
+    ventana.__flashboomRegistroTemporal = {
+      password: "",
+    };
+  }
+
+  return ventana.__flashboomRegistroTemporal;
+}
 
 export default function Pago() {
+  const router = useRouter();
   const [nombre, setNombre] = useState("");
   const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
@@ -14,132 +34,111 @@ export default function Pago() {
   const [fecha, setFecha] = useState("");
   const [estado, setEstado] = useState("");
   const [ciudad, setCiudad] = useState("");
+
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    let activo = true;
+    const nombreLS = localStorage.getItem("nombre") || "";
+    const celularLS = localStorage.getItem("celular") || "";
+    const correoLS = localStorage.getItem("correo") || "";
+    const eventoLS = localStorage.getItem("evento") || "";
+    const tipoLS = localStorage.getItem("tipoEvento") || "";
+    const fechaLS = localStorage.getItem("fecha") || "";
+    const estadoLS = localStorage.getItem("estado") || "";
+    const ciudadLS = localStorage.getItem("ciudad") || "";
 
-    async function cargarDatos() {
-      const supabase = createClient();
-
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        window.location.replace("/login");
-        return;
-      }
-
-      const nombreLS = localStorage.getItem("nombre") || "";
-      const celularLS = localStorage.getItem("celular") || "";
-      const correoLS = localStorage.getItem("correo") || "";
-      const eventoLS = localStorage.getItem("evento") || "";
-      const tipoLS = localStorage.getItem("tipoEvento") || "";
-      const fechaLS = localStorage.getItem("fecha") || "";
-      const estadoLS = localStorage.getItem("estado") || "";
-      const ciudadLS = localStorage.getItem("ciudad") || "";
-
-      if (
-        !nombreLS ||
-        !celularLS ||
-        !eventoLS ||
-        !tipoLS ||
-        !fechaLS ||
-        !estadoLS ||
-        !ciudadLS
-      ) {
-        window.location.replace("/crear-album/evento");
-        return;
-      }
-
-      if (activo) {
-        setNombre(nombreLS);
-        setCelular(celularLS);
-        setCorreo(user.email || correoLS);
-        setEvento(eventoLS);
-        setTipoEvento(tipoLS);
-        setFecha(fechaLS);
-        setEstado(estadoLS);
-        setCiudad(ciudadLS);
-        setCargando(false);
-      }
+    if (!nombreLS || !celularLS || !correoLS) {
+      router.replace("/crear-album/datos");
+      return;
     }
 
-    cargarDatos();
+    if (
+      !eventoLS ||
+      !tipoLS ||
+      !fechaLS ||
+      !estadoLS ||
+      !ciudadLS
+    ) {
+      router.replace("/crear-album/evento");
+      return;
+    }
 
-    return () => {
-      activo = false;
-    };
-  }, []);
+    setNombre(nombreLS);
+    setCelular(celularLS);
+    setCorreo(correoLS);
+    setEvento(eventoLS);
+    setTipoEvento(tipoLS);
+    setFecha(fechaLS);
+    setEstado(estadoLS);
+    setCiudad(ciudadLS);
+    setCargando(false);
+  }, [router]);
 
   async function confirmarPromocion() {
     if (procesando) return;
 
     setMensaje("");
+
+    // Recuperar la contraseña sin pedirla otra vez.
+    const password = obtenerRegistroTemporal().password;
+
+    if (!password || password.length < 8) {
+      setMensaje(
+        "No se encontró tu contraseña temporal. Regresa al paso Tus datos y vuelve a ingresarla."
+      );
+      return;
+    }
+
     setProcesando(true);
 
     try {
-      const supabase = createClient();
-
-      // Validar la sesión actual
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        window.location.replace("/login");
-        return;
-      }
-
-      // Obtener el perfil asociado a la cuenta autenticada
-      const { data: perfil, error: perfilError } = await supabase
-        .from("usuarios")
-        .select("id")
-        .eq("auth_user_id", user.id)
-        .maybeSingle();
-
-      if (perfilError || !perfil) {
-        setMensaje(
-          "No encontramos el perfil de tu cuenta. Cierra sesión e inicia nuevamente."
-        );
-        return;
-      }
-
-      // Crear el evento como promoción gratuita de pruebas
-      const { data: eventoCreado, error: eventoError } = await supabase
-        .from("eventos")
-        .insert({
-          usuario_id: perfil.id,
-          nombre_evento: evento.trim(),
-          tipo_evento: tipoEvento,
+      const respuesta = await fetch("/api/registro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: nombre.trim(),
+          celular: celular.trim(),
+          correo: correo.trim().toLowerCase(),
+          password,
+          evento: evento.trim(),
+          tipoEvento,
           fecha,
           estado,
           ciudad: ciudad.trim(),
           estatus: "ACTIVO",
           promocion: true,
-        })
-        .select("id, codigo")
-        .single();
+        }),
+      });
 
-      if (eventoError || !eventoCreado) {
-        console.error("Error al crear evento:", eventoError);
-        setMensaje(
-          "No fue posible crear el evento. Verifica los permisos e inténtalo nuevamente."
-        );
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        if (resultado.codigo === "CUENTA_EXISTENTE") {
+          setMensaje(
+            "Este correo ya tiene una cuenta. Inicia sesión para continuar."
+          );
+        } else if (resultado.codigo === "INICIO_SESION_MANUAL") {
+          setMensaje(
+            "Tu cuenta y tu evento fueron creados, pero no se pudo iniciar sesión automáticamente. Ve a Iniciar sesión para continuar."
+          );
+        } else {
+          setMensaje(
+            resultado.error ||
+              "No fue posible activar la promoción. Intenta nuevamente."
+          );
+        }
+
         return;
       }
 
-      // Limpiar los datos temporales tras crear el evento
       [
         "nombre",
         "correo",
-        "celular",
-        "password",
+        "celular",        
         "evento",
         "tipoEvento",
         "fecha",
@@ -147,11 +146,13 @@ export default function Pago() {
         "ciudad",
       ].forEach((clave) => localStorage.removeItem(clave));
 
-      // Ir al dashboard
-      window.location.replace("/dashboard");
+      // Eliminar la contraseña de la memoria temporal.
+      obtenerRegistroTemporal().password = "";
+
+      router.replace("/dashboard");
     } catch (error) {
       console.error("Error al activar la promoción:", error);
-      setMensaje("Ocurrió un error inesperado. Intenta nuevamente.");
+      setMensaje("Ocurrió un error de conexión. Intenta nuevamente.");
     } finally {
       setProcesando(false);
     }
@@ -160,7 +161,9 @@ export default function Pago() {
   if (cargando) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-white to-violet-50 flex items-center justify-center">
-        <p className="text-violet-700">Verificando tu sesión...</p>
+        <p className="text-violet-700">
+          Cargando información del evento...
+        </p>
       </main>
     );
   }
@@ -241,7 +244,9 @@ export default function Pago() {
 
                 <div>
                   <p className="text-gray-400 text-sm">Tipo</p>
-                  <p className="font-semibold text-lg">{tipoEvento}</p>
+                  <p className="font-semibold text-lg">
+                    {tipoEvento}
+                  </p>
                 </div>
               </div>
 
@@ -282,13 +287,35 @@ export default function Pago() {
         </div>
 
         {mensaje && (
-          <p className="mt-6 rounded-xl bg-red-50 p-4 text-center text-red-700">
-            {mensaje}
-          </p>
+          <div
+            role="alert"
+            className="mt-6 rounded-xl bg-red-50 p-4 text-center text-red-700"
+          >
+            <p>{mensaje}</p>
+
+            {(mensaje.includes("ya tiene una cuenta") ||
+              mensaje.includes("iniciar sesión")) && (
+              <Link
+                href="/login"
+                className="inline-block mt-3 font-semibold text-violet-700 underline"
+              >
+                Ir a iniciar sesión
+              </Link>
+            )}
+
+            {mensaje.includes("contraseña temporal") && (
+              <Link
+                href="/crear-album/datos"
+                className="inline-block mt-3 font-semibold text-violet-700 underline"
+              >
+                Regresar a Tus datos
+              </Link>
+            )}
+          </div>
         )}
 
         <p className="mt-8 text-center text-gray-500">
-          Al confirmar, se creará tu evento promocional.
+          Al confirmar, se creará tu cuenta y tu evento promocional.
         </p>
 
         <div className="flex gap-4 mt-10">

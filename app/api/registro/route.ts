@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -6,6 +5,9 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: Request) {
   let authUserId: string | null = null;
+  let perfilId: number | null = null;
+  let eventoId: number | null = null;
+  let registroCompleto = false;
 
   try {
     const body = await request.json();
@@ -15,22 +17,49 @@ export async function POST(request: Request) {
     const celular = String(body.celular ?? "").trim();
     const password = String(body.password ?? "");
 
-    if (
-      !nombre ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) ||
-      !celular ||
-      password.length < 8
-    ) {
+    const nombreEvento = String(body.evento ?? "").trim();
+    const tipoEvento = String(body.tipoEvento ?? "").trim();
+    const fecha = String(body.fecha ?? "").trim();
+    const estado = String(body.estado ?? "").trim();
+    const ciudad = String(body.ciudad ?? "").trim();
+
+    // Validar los datos e identificar exactamente qué campo falla.
+    const errores: string[] = [];
+
+    if (!nombre) errores.push("nombre");
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      errores.push("correo");
+    }
+
+    if (!celular) errores.push("celular");
+    if (password.length < 8) errores.push("contraseña");
+    if (!nombreEvento) errores.push("nombre del evento");
+    if (!tipoEvento) errores.push("tipo de evento");
+    if (!fecha) errores.push("fecha");
+    if (!estado) errores.push("estado");
+    if (!ciudad) errores.push("ciudad");
+
+    if (errores.length > 0) {
+      console.error("Campos que fallan la validación:", errores);
+
       return NextResponse.json(
         {
-          error:
-            "Verifica tu nombre, correo, celular y contraseña. La contraseña debe tener al menos 8 caracteres.",
+          error: "Verifica los datos del registro.",
+          campos: errores,
         },
         { status: 400 }
       );
     }
 
-    // Crear la cuenta de autenticación
+    if (body.promocion !== true) {
+      return NextResponse.json(
+        { error: "La promoción solicitada no es válida." },
+        { status: 400 }
+      );
+    }
+
+    // 1. Crear la cuenta de autenticación.
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email: correo,
@@ -40,9 +69,29 @@ export async function POST(request: Request) {
       });
 
     if (authError || !authData.user) {
+      const mensajeError = authError?.message?.toLowerCase() ?? "";
+
+      if (
+        mensajeError.includes("already") ||
+        mensajeError.includes("registered") ||
+        mensajeError.includes("exists") ||
+        mensajeError.includes("duplicate")
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Este correo ya tiene una cuenta. Inicia sesión para continuar.",
+            codigo: "CUENTA_EXISTENTE",
+          },
+          { status: 409 }
+        );
+      }
+
+      console.error("Error al crear usuario:", authError);
+
       return NextResponse.json(
         {
-          error: authError?.message ?? "No se pudo crear la cuenta.",
+          error: "No fue posible crear la cuenta. Intenta nuevamente.",
         },
         { status: 400 }
       );
@@ -50,28 +99,54 @@ export async function POST(request: Request) {
 
     authUserId = authData.user.id;
 
-    // Crear el perfil asociado a la cuenta
-    const { error: perfilError } = await supabaseAdmin
-      .from("usuarios")
-      .insert({
-        auth_user_id: authUserId,
-        nombre,
-        correo,
-        celular,
-        password: null,
-      });
+    // 2. Crear el perfil.
+    const { data: perfilNuevo, error: perfilError } =
+      await supabaseAdmin
+        .from("usuarios")
+        .insert({
+          auth_user_id: authUserId,
+          nombre,
+          correo,
+          celular,
+          password: null,
+        })
+        .select("id")
+        .single();
 
-    if (perfilError) {
-      await supabaseAdmin.auth.admin.deleteUser(authUserId);
-      authUserId = null;
-
-      return NextResponse.json(
-        { error: perfilError.message },
-        { status: 500 }
-      );
+    if (perfilError || !perfilNuevo) {
+      console.error("Error al crear perfil:", perfilError);
+      throw new Error("No fue posible crear el perfil de usuario.");
     }
 
+    perfilId = perfilNuevo.id;
+
+    // 3. Crear el evento promocional.
+    const { data: eventoNuevo, error: eventoError } =
+      await supabaseAdmin
+        .from("eventos")
+        .insert({
+          usuario_id: perfilId,
+          nombre_evento: nombreEvento,
+          tipo_evento: tipoEvento,
+          fecha,
+          estado,
+          ciudad,
+          estatus: "ACTIVO",
+          promocion: true,
+        })
+        .select("id, codigo")
+        .single();
+
+    if (eventoError || !eventoNuevo) {
+      console.error("Error al crear evento:", eventoError);
+      throw new Error("No fue posible crear el evento promocional.");
+    }
+
+    eventoId = eventoNuevo.id;
+
+    // 4. Iniciar sesión y preparar las cookies.
     const cookieStore = await cookies();
+
     const cookiesPendientes: Array<{
       name: string;
       value: string;
@@ -96,7 +171,6 @@ export async function POST(request: Request) {
       }
     );
 
-    // Iniciar sesión con la cuenta recién creada
     const { data: loginData, error: loginError } =
       await supabaseAuth.auth.signInWithPassword({
         email: correo,
@@ -104,28 +178,32 @@ export async function POST(request: Request) {
       });
 
     if (loginError || !loginData.user) {
-      await supabaseAdmin
-        .from("usuarios")
-        .delete()
-        .eq("auth_user_id", authUserId);
+      console.error("Error al iniciar sesión:", loginError);
 
-      await supabaseAdmin.auth.admin.deleteUser(authUserId);
-      authUserId = null;
+      // La cuenta y el evento ya existen; no los eliminamos.
+      registroCompleto = true;
 
       return NextResponse.json(
         {
           error:
-            "No fue posible iniciar sesión después del registro. Intenta nuevamente.",
+            "Tu cuenta y tu evento fueron creados, pero no se pudo iniciar sesión automáticamente. Ve a Iniciar sesión para continuar.",
+          codigo: "INICIO_SESION_MANUAL",
         },
         { status: 500 }
       );
     }
 
-    // Adjuntar las cookies a la respuesta HTTP
+    registroCompleto = true;
+
     const response = NextResponse.json(
       {
         ok: true,
-        mensaje: "Cuenta creada e inicio de sesión completado.",
+        mensaje:
+          "Cuenta creada, evento activado e inicio de sesión completado.",
+        evento: {
+          id: eventoNuevo.id,
+          codigo: eventoNuevo.codigo,
+        },
       },
       { status: 201 }
     );
@@ -140,19 +218,50 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
-    console.error("Error en registro:", error);
+    console.error("Error en el proceso de registro:", error);
 
-    if (authUserId) {
-      await supabaseAdmin
-        .from("usuarios")
-        .delete()
-        .eq("auth_user_id", authUserId);
+    // Revertir únicamente los registros creados por esta operación.
+    if (authUserId && !registroCompleto) {
+      if (eventoId !== null) {
+        const { error: eliminarEventoError } = await supabaseAdmin
+          .from("eventos")
+          .delete()
+          .eq("id", eventoId);
 
-      await supabaseAdmin.auth.admin.deleteUser(authUserId);
+        if (eliminarEventoError) {
+          console.error("Error al revertir evento:", eliminarEventoError);
+        }
+      }
+
+      if (perfilId !== null) {
+        const { error: eliminarPerfilError } = await supabaseAdmin
+          .from("usuarios")
+          .delete()
+          .eq("id", perfilId);
+
+        if (eliminarPerfilError) {
+          console.error("Error al revertir perfil:", eliminarPerfilError);
+        }
+      }
+
+      const { error: eliminarUsuarioError } =
+        await supabaseAdmin.auth.admin.deleteUser(authUserId);
+
+      if (eliminarUsuarioError) {
+        console.error(
+          "Error al revertir usuario de autenticación:",
+          eliminarUsuarioError
+        );
+      }
     }
 
     return NextResponse.json(
-      { error: "Ocurrió un error al crear la cuenta." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Ocurrió un error al crear la cuenta.",
+      },
       { status: 500 }
     );
   }
