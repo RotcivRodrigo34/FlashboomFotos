@@ -9,33 +9,20 @@ type HeroCarouselProps = {
 };
 
 export default function HeroCarousel({ imagenes }: HeroCarouselProps) {
-
-  const slides = imagenes.length > 0
-    ? imagenes
-    : ["/XV.png", "/XV.png", "/XV.png"];
-
   const [emblaRef, emblaApi] = useEmblaCarousel({
-
     align: "center",
-
     loop: true,
-
-    dragFree: false
-
+    dragFree: false,
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onSelect = useCallback(() => {
-
     if (!emblaApi) return;
-
     setSelectedIndex(emblaApi.selectedScrollSnap());
-
   }, [emblaApi]);
 
   useEffect(() => {
-
     if (!emblaApi) return;
 
     onSelect();
@@ -45,70 +32,54 @@ export default function HeroCarousel({ imagenes }: HeroCarouselProps) {
     return () => {
       emblaApi.off("select", onSelect);
     };
-
   }, [emblaApi, onSelect]);
 
+  // Si el evento no tiene portadas, no mostrar el carrusel.
+  if (imagenes.length === 0) {
+    return null;
+  }
+
   return (
-
     <section>
-
-      <div
-        className="overflow-hidden"
-        ref={emblaRef}
-      >
-
+      <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex py-2">
-
-          {
-            slides.map((imagen, index) => (
-
+          {imagenes.map((imagen, index) => (
+            <div
+              key={`${imagen}-${index}`}
+              className="flex-[0_0_82%] px-1"
+            >
               <div
-                key={index}
-                className="flex-[0_0_82%] px-1"
+                className={`
+                  relative
+                  h-[200px]
+                  rounded-[24px]
+                  overflow-hidden
+                  shadow-xl
+                  transition-all
+                  duration-500
+                  ${
+                    selectedIndex === index
+                      ? "scale-100"
+                      : "scale-90 opacity-70"
+                  }
+                `}
               >
-
-                <div
-                  className={`
-                    relative
-                    h-[200px]
-                    rounded-[24px]
-                    overflow-hidden
-                    shadow-xl
-                    transition-all
-                    duration-500
-                    ${
-                      selectedIndex === index
-                        ? "scale-100"
-                        : "scale-90 opacity-70"
-                    }
-                  `}
-                >
-
-                  <Image
-                    src={imagen}
-                    alt="Evento"
-                    fill
-                    priority
-                    className="object-cover"
-                  />
-
-                </div>
-
+                <Image
+                  src={imagen}
+                  alt="Portada del evento"
+                  fill
+                  priority={index === 0}
+                  className="object-cover"
+                />
               </div>
-
-            ))
-
-          }
-
+            </div>
+          ))}
         </div>
-
       </div>
 
-      <div className="flex justify-center gap-2 mt-2">
-
-        {
-          slides.map((_, index) => (
-
+      {imagenes.length > 1 && (
+        <div className="flex justify-center gap-2 mt-2">
+          {imagenes.map((_, index) => (
             <div
               key={index}
               className={`
@@ -122,14 +93,9 @@ export default function HeroCarousel({ imagenes }: HeroCarouselProps) {
                 }
               `}
             />
-
-          ))
-        }
-
-      </div>
-
+          ))}
+        </div>
+      )}
     </section>
-
   );
-
 }

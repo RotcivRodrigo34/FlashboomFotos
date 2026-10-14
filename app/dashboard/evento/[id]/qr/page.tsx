@@ -57,15 +57,17 @@ if (!data) {
 
 const urlAlbum = `${window.location.origin}/evento/${encodeURIComponent(data.codigo)}`;
 
-        const qr = await QRCode.toDataURL(urlAlbum, {
-          width: 400,
-          margin: 2,
-          errorCorrectionLevel: "H",
-          color: {
-            dark: "#4c1d95",
-            light: "#ffffff",
-          },
-        });
+       
+const qr = await QRCode.toDataURL(urlAlbum, {
+  width: 400,
+  margin: 2,
+  errorCorrectionLevel: "H",
+  color: {
+    dark: "#000000",
+    light: "#ffffff",
+  },
+});
+
 
         setEvento(data as Evento);
         setEnlaceAlbum(urlAlbum);

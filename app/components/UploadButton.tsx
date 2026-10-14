@@ -25,8 +25,14 @@ export default function UploadButton({
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [totalFotos, setTotalFotos] = useState(0);
+  const [fotosProcesadas, setFotosProcesadas] = useState(0);
   const [fotosSubidas, setFotosSubidas] = useState(0);
   const [enCola, setEnCola] = useState(false);
+
+  const porcentaje =
+    totalFotos > 0
+      ? Math.round((fotosProcesadas / totalFotos) * 100)
+      : 0;
 
   async function subirArchivo(
     e: React.ChangeEvent<HTMLInputElement>
@@ -39,6 +45,7 @@ export default function UploadButton({
 
     setMensaje("");
     setTotalFotos(seleccionadas.length);
+    setFotosProcesadas(0);
     setFotosSubidas(0);
     setEnCola(true);
     setSubiendo(true);
@@ -48,12 +55,14 @@ export default function UploadButton({
     let mensajeError = "";
 
     try {
-      // Validar los archivos antes de comenzar las cargas.
       const validas: File[] = [];
+      let invalidas = 0;
 
+      // Validar las fotografías seleccionadas.
       for (const foto of seleccionadas) {
         if (!TIPOS_PERMITIDOS.includes(foto.type)) {
           errores++;
+          invalidas++;
           mensajeError =
             "Solo se permiten imágenes JPG, PNG o WebP.";
           continue;
@@ -61,6 +70,7 @@ export default function UploadButton({
 
         if (foto.size === 0 || foto.size > MAX_FILE_SIZE) {
           errores++;
+          invalidas++;
           mensajeError =
             "Cada fotografía debe pesar más de 0 bytes y no superar 15 MB.";
           continue;
@@ -69,11 +79,14 @@ export default function UploadButton({
         validas.push(foto);
       }
 
+      // Contar como procesados los archivos descartados
+      // durante la validación.
+      setFotosProcesadas(invalidas);
+
       // Subir las fotografías una por una.
       for (const foto of validas) {
         try {
           const formData = new FormData();
-
           formData.append("foto", foto);
           formData.append("codigoEvento", codigoEvento);
 
@@ -89,18 +102,19 @@ export default function UploadButton({
             mensajeError =
               data.mensaje ||
               `No se pudo subir ${foto.name}.`;
-            continue;
+          } else {
+            exitosas++;
+            setFotosSubidas(exitosas);
+
+            // Actualizar la galería tras cada carga exitosa.
+            onUploadComplete();
           }
-
-          exitosas++;
-          setFotosSubidas(exitosas);
-
-          // Actualizar la galería después de cada carga exitosa.
-          onUploadComplete();
         } catch {
           errores++;
           mensajeError =
             `No se pudo completar la carga de ${foto.name}. Revisa tu conexión e intenta nuevamente.`;
+        } finally {
+          setFotosProcesadas((prev) => prev + 1);
         }
       }
 
@@ -112,7 +126,7 @@ export default function UploadButton({
         );
       } else if (exitosas > 0 && errores > 0) {
         setMensaje(
-          `⚠️ Se subieron ${exitosas} de ${seleccionadas.length}. ${mensajeError}`
+          `⚠️ Se subieron ${exitosas} de ${seleccionadas.length} fotografías. ${mensajeError}`
         );
       } else {
         setMensaje(
@@ -127,7 +141,6 @@ export default function UploadButton({
       setSubiendo(false);
       setEnCola(false);
 
-      // Permitir volver a seleccionar los mismos archivos.
       if (inputFile.current) {
         inputFile.current.value = "";
       }
@@ -135,7 +148,7 @@ export default function UploadButton({
   }
 
   return (
-    <>
+    <div className="w-full">
       <input
         ref={inputFile}
         type="file"
@@ -166,19 +179,48 @@ export default function UploadButton({
           }
         `}
       >
-        <div className="flex justify-center items-center gap-3">
-          <span>
-            {subiendo
-              ? "⏳ Subiendo fotografías..."
-              : "📷 Subir mis fotografías"}
-          </span>
-        </div>
+        <span className="flex justify-center items-center gap-3">
+          {subiendo
+            ? "⏳ Subiendo fotografías..."
+            : "📷 Subir mis fotografías"}
+        </span>
       </button>
 
       {enCola && (
-        <p className="text-center text-sm text-gray-600 mt-3">
-          📤 Subiendo {fotosSubidas} de {totalFotos} fotografías...
-        </p>
+        <div
+          className="mt-4 space-y-2"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex justify-between items-center text-sm text-gray-700">
+            <span>
+              {fotosProcesadas} de {totalFotos} fotografías procesadas
+            </span>
+            <span className="font-bold text-violet-700">
+              {porcentaje}%
+            </span>
+          </div>
+
+          <div
+            className="w-full h-3 rounded-full bg-gray-200 overflow-hidden"
+            role="progressbar"
+            aria-label="Progreso de carga de fotografías"
+            aria-valuemin={0}
+            aria-valuemax={totalFotos}
+            aria-valuenow={fotosProcesadas}
+          >
+            <div
+              className="h-full rounded-full bg-violet-600 transition-all duration-300 ease-out"
+              style={{ width: `${porcentaje}%` }}
+            />
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
+            {fotosSubidas > 0
+              ? `✅ ${fotosSubidas} fotografías subidas correctamente`
+              : "Preparando tus fotografías..."}
+          </p>
+        </div>
       )}
 
       {mensaje && (
@@ -190,6 +232,6 @@ export default function UploadButton({
           {mensaje}
         </p>
       )}
-    </>
+    </div>
   );
 }

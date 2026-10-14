@@ -70,12 +70,19 @@ console.log("Evento seleccionado:", idEvento);
 
     
 
-const { data: { user }, error: errorUsuario } =
+
+const { data: sesion, error: errorSesion } =
+  await supabase.auth.getSession();
+
+const { data: usuarioActual, error: errorUsuario } =
   await supabase.auth.getUser();
 
-console.log("Usuario autenticado:", user?.id);
-console.log("Error de autenticación:", errorUsuario);
+console.log("ID de sesión:", sesion.session?.user.id);
+console.log("ID de usuario actual:", usuarioActual.user?.id);
+console.log("Error de sesión:", errorSesion);
+console.log("Error de usuario:", errorUsuario);
 console.log("Evento seleccionado:", idEvento);
+
     const archivo = event.target.files?.[0];
 
     if (!archivo) {
@@ -128,46 +135,28 @@ console.log("Evento seleccionado:", idEvento);
   storage_path: nombreArchivo,
 });
 
-      // PRUEBA TEMPORAL DE PROPIETARIO
-const { data: pruebaPropietario, error: errorPrueba } =
-  await supabase.rpc("es_propietario_evento", {
-    p_evento_id: Number(idEvento),
-  });
-
-console.log("Prueba propietario:", pruebaPropietario);
-console.log("Error prueba propietario:", errorPrueba);
-const { data: pruebaInsert, error: errorInsert } = await supabase
+const { error: errorDB } = await supabase
   .from("imagenes_portada")
   .insert({
     evento_id: Number(idEvento),
-    posicion: 99,
+    posicion,
     imagen_url: imagenUrl,
     storage_path: nombreArchivo,
-  })
-  .select();
+  });
+if (errorDB) {
+  console.error("Error real al guardar en la tabla:", {
+    code: errorDB.code,
+    message: errorDB.message,
+    details: errorDB.details,
+    hint: errorDB.hint,
+  });
 
-console.log("Prueba INSERT:", pruebaInsert);
-console.log("Error INSERT:", errorInsert);
+  alert(
+    `Error al guardar: ${errorDB.code} - ${errorDB.message}`
+  );
 
-      const { error: errorDB } =
-        await supabase
-          .from("imagenes_portada")
-          .upsert(
-            {
-              evento_id: Number(idEvento),
-              posicion,
-              imagen_url: imagenUrl,
-              storage_path: nombreArchivo,
-              updated_at: new Date().toISOString(),
-            },
-            {
-              onConflict: "evento_id,posicion",
-            }
-          );
-
-      if (errorDB) {
-        throw errorDB;
-      }
+  return;
+}
 
       setImagenes((imagenesActuales) => {
         const otrasImagenes =
