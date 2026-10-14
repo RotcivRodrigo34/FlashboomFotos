@@ -1,16 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Evento() {
   const router = useRouter();
+
   const [evento, setEvento] = useState("");
   const [tipoEvento, setTipoEvento] = useState("");
   const [fecha, setFecha] = useState("");
   const [estado, setEstado] = useState("");
   const [ciudad, setCiudad] = useState("");
+
+  const [modoNuevoEvento, setModoNuevoEvento] = useState(false);
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGeneral, setErrorGeneral] = useState("");
 
   const [errorEvento, setErrorEvento] = useState("");
   const [errorTipo, setErrorTipo] = useState("");
@@ -19,15 +25,60 @@ export default function Evento() {
   const [errorCiudad, setErrorCiudad] = useState("");
 
   useEffect(() => {
-    // Recuperar los datos si el usuario regresa a esta pantalla.
-    setEvento(localStorage.getItem("evento") || "");
-    setTipoEvento(localStorage.getItem("tipoEvento") || "");
-    setFecha(localStorage.getItem("fecha") || "");
-    setEstado(localStorage.getItem("estado") || "");
-    setCiudad(localStorage.getItem("ciudad") || "");
+    let activo = true;
+
+    async function verificarSesion() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!activo) return;
+
+        if (session?.user) {
+          // Usuario con sesión iniciada: creará un evento adicional.
+          setModoNuevoEvento(true);
+          return;
+        }
+
+        // Usuario nuevo: recuperar el borrador del registro si regresa.
+        setModoNuevoEvento(false);
+        setEvento(localStorage.getItem("evento") || "");
+        setTipoEvento(localStorage.getItem("tipoEvento") || "");
+        setFecha(localStorage.getItem("fecha") || "");
+        setEstado(localStorage.getItem("estado") || "");
+        setCiudad(localStorage.getItem("ciudad") || "");
+      } catch (error) {
+        console.error("Error al verificar la sesión:", error);
+
+        if (!activo) return;
+
+        setErrorGeneral(
+          "No pudimos verificar tu sesión. Recarga la página e inténtalo de nuevo."
+        );
+      } finally {
+        if (activo) {
+          setVerificandoSesion(false);
+        }
+      }
+    }
+
+    verificarSesion();
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
-  function guardarEvento() {
+  async function guardarEvento() {
+    if (guardando || verificandoSesion) return;
+
     let valido = true;
 
     setErrorEvento("");
@@ -35,6 +86,7 @@ export default function Evento() {
     setErrorFecha("");
     setErrorEstado("");
     setErrorCiudad("");
+    setErrorGeneral("");
 
     if (!evento.trim()) {
       setErrorEvento("Ingresa el nombre del evento.");
@@ -63,13 +115,39 @@ export default function Evento() {
 
     if (!valido) return;
 
-    localStorage.setItem("evento", evento.trim());
+    setGuardando(true);
+
+    try {
+    
+      // Flujo original para usuarios que todavía no han creado su cuenta.
+      localStorage.setItem("evento", evento.trim());
+      localStorage.setItem("tipoEvento", tipoEvento);
+      localStorage.setItem("fecha", fecha);
+      localStorage.setItem("estado", estado.trim());
+      localStorage.setItem("ciudad", ciudad.trim());
+
+      router.push("/crear-album/pago");
+    } catch (error) {
+      console.error("Error al guardar el evento:", error);
+      setErrorGeneral("Ocurrió un error al guardar el evento. Inténtalo nuevamente.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  function regresar() {
+    if (modoNuevoEvento) {
+      router.push("/dashboard");
+      return;
+    }
+
+    localStorage.setItem("evento", evento);
     localStorage.setItem("tipoEvento", tipoEvento);
     localStorage.setItem("fecha", fecha);
-    localStorage.setItem("estado", estado.trim());
-    localStorage.setItem("ciudad", ciudad.trim());
+    localStorage.setItem("estado", estado);
+    localStorage.setItem("ciudad", ciudad);
 
-    router.push("/crear-album/pago");
+    router.push("/crear-album/datos");
   }
 
   return (
@@ -231,19 +309,16 @@ export default function Evento() {
             )}
           </div>
 
+          {errorGeneral && (
+            <p className="text-red-500 mt-4 text-center">{errorGeneral}</p>
+          )}
+
           <div className="flex gap-4 mt-10">
             <button
               type="button"
-              onClick={() => {
-                localStorage.setItem("evento", evento);
-                localStorage.setItem("tipoEvento", tipoEvento);
-                localStorage.setItem("fecha", fecha);
-                localStorage.setItem("estado", estado);
-                localStorage.setItem("ciudad", ciudad);
-
-                router.push("/crear-album/datos");
-              }}
-              className="w-full border border-violet-300 text-violet-600 py-4 rounded-2xl"
+              onClick={regresar}
+              disabled={verificandoSesion || guardando}
+              className="w-full border border-violet-300 text-violet-600 py-4 rounded-2xl disabled:opacity-50"
             >
               ← Regresar
             </button>
@@ -251,9 +326,16 @@ export default function Evento() {
             <button
               type="button"
               onClick={guardarEvento}
-              className="w-full bg-violet-600 hover:bg-violet-700 transition text-white py-4 rounded-2xl"
+              disabled={verificandoSesion || guardando}
+              className="w-full bg-violet-600 hover:bg-violet-700 transition text-white py-4 rounded-2xl disabled:opacity-50"
             >
-              Continuar →
+              {verificandoSesion
+                ? "Verificando sesión..."
+                : guardando
+                  ? "Guardando evento..."
+                  : modoNuevoEvento
+                    ? "Continuar →"
+                    : "Continuar →"}
             </button>
           </div>
         </div>

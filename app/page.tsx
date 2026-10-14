@@ -4,21 +4,49 @@ import FaqItem from "./components/FaqItem";
 import Link from "next/link";
 import Header from "@/app/components/Header";
 import { useState,useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
   const [logueado,setLogueado]=useState(false);
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
 
-useEffect(()=>{
+useEffect(() => {
+  const supabase = createClient();
 
-const login=localStorage.getItem("logueado");
+  async function verificarSesion() {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
-if(login=="true"){
+      if (error) {
+        throw error;
+      }
 
-setLogueado(true);
+      setLogueado(!!session?.user);
+    } catch (error) {
+      console.error("Error al consultar la sesión:", error);
+      setLogueado(false);
+    } finally {
+      setVerificandoSesion(false);
+    }
+  }
 
-}
+  verificarSesion();
 
-},[]);
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setLogueado(!!session?.user);
+    setVerificandoSesion(false);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+
   return (
     
 <main id="inicio" className="min-h-screen bg-white">
@@ -115,12 +143,18 @@ Iniciar sesión
 
 <button
 
-onClick={()=>{
+onClick={async () => {
+  const supabase = createClient();
 
-localStorage.removeItem("logueado");
+  const { error } = await supabase.auth.signOut();
 
-window.location.reload();
+  if (error) {
+    console.error("Error al cerrar sesión:", error);
+    return;
+  }
 
+  localStorage.removeItem("logueado");
+  window.location.href = "/";
 }}
 
 className="hidden md:block text-gray-700 hover:text-violet-600">

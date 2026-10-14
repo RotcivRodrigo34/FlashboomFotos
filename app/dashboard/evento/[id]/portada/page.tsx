@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 type ImagenPortada = {
   posicion: number;
@@ -15,6 +15,7 @@ export default function PortadaEvento() {
 
   const idEvento = String(params.id);
   const router = useRouter();
+  const [supabase] = useState(() => createClient());
 
 function cerrarSesion() {
   localStorage.removeItem("logueado");
@@ -30,7 +31,10 @@ function cerrarSesion() {
   useEffect(() => {
     async function cargarImagenes() {
       setCargando(true);
+const { data: sesion } = await supabase.auth.getSession();
 
+console.log("Usuario autenticado:", sesion.session?.user.id);
+console.log("Evento seleccionado:", idEvento);
       const { data, error } = await supabase
         .from("imagenes_portada")
         .select("posicion, imagen_url, storage_path")
@@ -63,6 +67,15 @@ function cerrarSesion() {
     event: React.ChangeEvent<HTMLInputElement>,
     posicion: number
   ) {
+
+    
+
+const { data: { user }, error: errorUsuario } =
+  await supabase.auth.getUser();
+
+console.log("Usuario autenticado:", user?.id);
+console.log("Error de autenticación:", errorUsuario);
+console.log("Evento seleccionado:", idEvento);
     const archivo = event.target.files?.[0];
 
     if (!archivo) {
@@ -92,6 +105,7 @@ function cerrarSesion() {
             archivo,
             {
               contentType: archivo.type,
+              
               upsert: false,
             }
           );
@@ -106,6 +120,34 @@ function cerrarSesion() {
           .getPublicUrl(nombreArchivo);
 
       const imagenUrl = urlData.publicUrl;
+
+      console.log("Datos que se guardarán:", {
+  evento_id: Number(idEvento),
+  posicion,
+  imagen_url: imagenUrl,
+  storage_path: nombreArchivo,
+});
+
+      // PRUEBA TEMPORAL DE PROPIETARIO
+const { data: pruebaPropietario, error: errorPrueba } =
+  await supabase.rpc("es_propietario_evento", {
+    p_evento_id: Number(idEvento),
+  });
+
+console.log("Prueba propietario:", pruebaPropietario);
+console.log("Error prueba propietario:", errorPrueba);
+const { data: pruebaInsert, error: errorInsert } = await supabase
+  .from("imagenes_portada")
+  .insert({
+    evento_id: Number(idEvento),
+    posicion: 99,
+    imagen_url: imagenUrl,
+    storage_path: nombreArchivo,
+  })
+  .select();
+
+console.log("Prueba INSERT:", pruebaInsert);
+console.log("Error INSERT:", errorInsert);
 
       const { error: errorDB } =
         await supabase
@@ -147,18 +189,37 @@ function cerrarSesion() {
 
       alert("Imagen subida correctamente.");
 
-    } catch (error: any) {
-      console.error(error);
+   
 
-      alert(
-        error.message ||
-        "No se pudo subir la imagen."
-      );
+} catch (error: any) {
+  console.error("Error al subir portada:", error);
 
-    } finally {
-      setSubiendo(null);
-      event.target.value = "";
-    }
+  console.log("Detalles del error:", {
+    name: error?.name,
+    message: error?.message,
+    code: error?.code,
+    details: error?.details,
+    hint: error?.hint,
+    statusCode: error?.statusCode,
+    string: String(error),
+    json: JSON.stringify(
+      error,
+      Object.getOwnPropertyNames(error ?? {})
+    ),
+  });
+
+  alert(
+    error?.message ||
+    error?.details ||
+    String(error) ||
+    "No se pudo subir la imagen."
+  );
+} finally {
+  setSubiendo(null);
+  event.target.value = "";
+}
+
+
   }
 
 return (

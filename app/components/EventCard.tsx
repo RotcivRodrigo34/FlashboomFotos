@@ -96,9 +96,17 @@ abierto===index&&(
       <button className="border rounded-2xl py-3 hover:bg-violet-50">
          🎨 Plantillas
       </button>
-      <button className="border rounded-2xl py-3 hover:bg-violet-50">
-         🔳 QR
-      </button>
+
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    window.location.href = `/dashboard/evento/${index}/qr`;
+  }}
+  className="border rounded-2xl py-3 hover:bg-violet-50"
+>
+  🔳 QR
+</button>
+
 <button
    onClick={(e) => {
       e.stopPropagation();

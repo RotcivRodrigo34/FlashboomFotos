@@ -32,12 +32,60 @@ const { data: evento, error } = await supabase
   .from("eventos")
   .select("*")
   .eq("codigo", codigo)
-  .single();
+  .maybeSingle();
+
+console.log("Código recibido:", codigo);
+console.log("Evento consultado:", evento);
+
+if (error) {
+  console.error("Error de Supabase:", {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+  });
+}
 
 if (error || !evento) {
+  return (
+    <main className="p-10">
+      <h1 className="text-2xl font-bold">
+        No se encontró el evento
+      </h1>
 
-  notFound();
+      <p className="mt-3">
+        Código recibido: {codigo}
+      </p>
 
+      <pre className="mt-4 whitespace-pre-wrap rounded-xl bg-gray-100 p-4 text-sm">
+        {JSON.stringify(
+          {
+            message: error?.message,
+            code: error?.code,
+            details: error?.details,
+            hint: error?.hint,
+          },
+          null,
+          2
+        )}
+      </pre>
+    </main>
+  );
+}
+
+if (error || !evento) {
+  console.error("Error al consultar el evento:", error);
+  console.error("Código recibido en la ruta:", codigo);
+
+  return (
+    <main className="p-10">
+      <h1 className="text-2xl font-bold">No se encontró el evento</h1>
+      <p>Código consultado: {codigo}</p>
+      <pre className="mt-4 whitespace-pre-wrap">
+        {JSON.stringify(error, null, 2)}
+      </pre>
+    </main>
+  );
 }
 
 const { data: imagenesPortada } = await supabase

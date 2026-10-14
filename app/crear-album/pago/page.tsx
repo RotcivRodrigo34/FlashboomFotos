@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type RegistroTemporal = {
   password: string;
@@ -16,9 +17,7 @@ function obtenerRegistroTemporal(): RegistroTemporal {
   const ventana = window as WindowConRegistro;
 
   if (!ventana.__flashboomRegistroTemporal) {
-    ventana.__flashboomRegistroTemporal = {
-      password: "",
-    };
+    ventana.__flashboomRegistroTemporal = { password: "" };
   }
 
   return ventana.__flashboomRegistroTemporal;
@@ -26,6 +25,7 @@ function obtenerRegistroTemporal(): RegistroTemporal {
 
 export default function Pago() {
   const router = useRouter();
+
   const [nombre, setNombre] = useState("");
   const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
@@ -35,70 +35,137 @@ export default function Pago() {
   const [estado, setEstado] = useState("");
   const [ciudad, setCiudad] = useState("");
 
+  const [modoNuevoEvento, setModoNuevoEvento] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    const nombreLS = localStorage.getItem("nombre") || "";
-    const celularLS = localStorage.getItem("celular") || "";
-    const correoLS = localStorage.getItem("correo") || "";
-    const eventoLS = localStorage.getItem("evento") || "";
-    const tipoLS = localStorage.getItem("tipoEvento") || "";
-    const fechaLS = localStorage.getItem("fecha") || "";
-    const estadoLS = localStorage.getItem("estado") || "";
-    const ciudadLS = localStorage.getItem("ciudad") || "";
+    let activo = true;
 
-    if (!nombreLS || !celularLS || !correoLS) {
-      router.replace("/crear-album/datos");
-      return;
+    async function cargarDatos() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) throw error;
+        if (!activo) return;
+
+        const eventoLS = localStorage.getItem("evento") || "";
+        const tipoLS = localStorage.getItem("tipoEvento") || "";
+        const fechaLS = localStorage.getItem("fecha") || "";
+        const estadoLS = localStorage.getItem("estado") || "";
+        const ciudadLS = localStorage.getItem("ciudad") || "";
+
+        if (!eventoLS || !tipoLS || !fechaLS || !estadoLS || !ciudadLS) {
+          router.replace("/crear-album/evento");
+          return;
+        }
+
+        setEvento(eventoLS);
+        setTipoEvento(tipoLS);
+        setFecha(fechaLS);
+        setEstado(estadoLS);
+        setCiudad(ciudadLS);
+
+        if (session?.user) {
+          // Usuario con sesión: se creará un evento adicional después de confirmar.
+          setModoNuevoEvento(true);
+        } else {
+          // Registro de usuario nuevo: requiere los datos personales.
+          const nombreLS = localStorage.getItem("nombre") || "";
+          const celularLS = localStorage.getItem("celular") || "";
+          const correoLS = localStorage.getItem("correo") || "";
+
+          if (!nombreLS || !celularLS || !correoLS) {
+            router.replace("/crear-album/datos");
+            return;
+          }
+
+          setNombre(nombreLS);
+          setCelular(celularLS);
+          setCorreo(correoLS);
+          setModoNuevoEvento(false);
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos de pago:", error);
+        if (activo) {
+          setMensaje(
+            "No pudimos verificar tu sesión. Recarga la página e inténtalo de nuevo."
+          );
+        }
+      } finally {
+        if (activo) setCargando(false);
+      }
     }
 
-    if (
-      !eventoLS ||
-      !tipoLS ||
-      !fechaLS ||
-      !estadoLS ||
-      !ciudadLS
-    ) {
-      router.replace("/crear-album/evento");
-      return;
-    }
+    cargarDatos();
 
-    setNombre(nombreLS);
-    setCelular(celularLS);
-    setCorreo(correoLS);
-    setEvento(eventoLS);
-    setTipoEvento(tipoLS);
-    setFecha(fechaLS);
-    setEstado(estadoLS);
-    setCiudad(ciudadLS);
-    setCargando(false);
+    return () => {
+      activo = false;
+    };
   }, [router]);
 
   async function confirmarPromocion() {
     if (procesando) return;
 
     setMensaje("");
-
-    // Recuperar la contraseña sin pedirla otra vez.
-    const password = obtenerRegistroTemporal().password;
-
-    if (!password || password.length < 8) {
-      setMensaje(
-        "No se encontró tu contraseña temporal. Regresa al paso Tus datos y vuelve a ingresarla."
-      );
-      return;
-    }
-
     setProcesando(true);
 
     try {
+      if (modoNuevoEvento) {
+        // La cuenta ya existe. Crear el evento solamente al confirmar aquí.
+        const respuesta = await fetch("/api/crear-evento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            evento: evento.trim(),
+            tipoEvento,
+            fecha,
+            estado: estado.trim(),
+            ciudad: ciudad.trim(),
+          }),
+        });
+
+        const resultado = await respuesta.json().catch(() => null);
+
+        if (!respuesta.ok) {
+          setMensaje(
+            resultado?.error ||
+              "No fue posible crear el evento. Intenta nuevamente."
+          );
+          return;
+        }
+
+        [
+          "evento",
+          "tipoEvento",
+          "fecha",
+          "estado",
+          "ciudad",
+        ].forEach((clave) => localStorage.removeItem(clave));
+
+        router.replace("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      // Registro inicial: la contraseña temporal solo se usa en este flujo.
+      const password = obtenerRegistroTemporal().password;
+
+      if (!password || password.length < 8) {
+        setMensaje(
+          "No se encontró tu contraseña temporal. Regresa al paso Tus datos y vuelve a ingresarla."
+        );
+        return;
+      }
+
       const respuesta = await fetch("/api/registro", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre: nombre.trim(),
           celular: celular.trim(),
@@ -107,38 +174,37 @@ export default function Pago() {
           evento: evento.trim(),
           tipoEvento,
           fecha,
-          estado,
+          estado: estado.trim(),
           ciudad: ciudad.trim(),
           estatus: "ACTIVO",
           promocion: true,
         }),
       });
 
-      const resultado = await respuesta.json();
+      const resultado = await respuesta.json().catch(() => null);
 
       if (!respuesta.ok) {
-        if (resultado.codigo === "CUENTA_EXISTENTE") {
+        if (resultado?.codigo === "CUENTA_EXISTENTE") {
           setMensaje(
             "Este correo ya tiene una cuenta. Inicia sesión para continuar."
           );
-        } else if (resultado.codigo === "INICIO_SESION_MANUAL") {
+        } else if (resultado?.codigo === "INICIO_SESION_MANUAL") {
           setMensaje(
             "Tu cuenta y tu evento fueron creados, pero no se pudo iniciar sesión automáticamente. Ve a Iniciar sesión para continuar."
           );
         } else {
           setMensaje(
-            resultado.error ||
+            resultado?.error ||
               "No fue posible activar la promoción. Intenta nuevamente."
           );
         }
-
         return;
       }
 
       [
         "nombre",
         "correo",
-        "celular",        
+        "celular",
         "evento",
         "tipoEvento",
         "fecha",
@@ -146,12 +212,11 @@ export default function Pago() {
         "ciudad",
       ].forEach((clave) => localStorage.removeItem(clave));
 
-      // Eliminar la contraseña de la memoria temporal.
       obtenerRegistroTemporal().password = "";
-
       router.replace("/dashboard");
+      router.refresh();
     } catch (error) {
-      console.error("Error al activar la promoción:", error);
+      console.error("Error al confirmar la promoción:", error);
       setMensaje("Ocurrió un error de conexión. Intenta nuevamente.");
     } finally {
       setProcesando(false);
@@ -161,9 +226,7 @@ export default function Pago() {
   if (cargando) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-white to-violet-50 flex items-center justify-center">
-        <p className="text-violet-700">
-          Cargando información del evento...
-        </p>
+        <p className="text-violet-700">Cargando información del evento...</p>
       </main>
     );
   }
@@ -177,7 +240,7 @@ export default function Pago() {
           </span>
 
           <h1 className="text-5xl font-bold mt-5">
-            Confirmar promoción
+            {modoNuevoEvento ? "Confirmar nuevo evento" : "Confirmar promoción"}
           </h1>
 
           <p className="text-gray-500 text-xl mt-8">
@@ -206,47 +269,43 @@ export default function Pago() {
         <div className="mt-10">
           <div className="max-w-3xl mx-auto bg-white rounded-[30px] border border-violet-200 shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-violet-600 to-violet-700 text-white text-center py-6">
-              <h2 className="text-3xl font-bold">
-                FLASHBOOM FOTOS
-              </h2>
+              <h2 className="text-3xl font-bold">FLASHBOOM FOTOS</h2>
               <p className="tracking-[5px] uppercase text-violet-200 mt-2">
                 Tu Evento
               </p>
             </div>
 
             <div className="p-8">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-gray-400 text-sm">Nombre</p>
-                  <p className="font-semibold text-lg">{nombre}</p>
-                </div>
+              {!modoNuevoEvento && (
+                <>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-gray-400 text-sm">Nombre</p>
+                      <p className="font-semibold text-lg">{nombre}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Teléfono</p>
+                      <p className="font-semibold text-lg">{celular}</p>
+                    </div>
+                  </div>
 
-                <div>
-                  <p className="text-gray-400 text-sm">Teléfono</p>
-                  <p className="font-semibold text-lg">{celular}</p>
-                </div>
-              </div>
+                  <div className="mt-6">
+                    <p className="text-gray-400 text-sm">Correo</p>
+                    <p className="font-semibold text-lg break-all">{correo}</p>
+                  </div>
 
-              <div className="mt-6">
-                <p className="text-gray-400 text-sm">Correo</p>
-                <p className="font-semibold text-lg break-all">
-                  {correo}
-                </p>
-              </div>
-
-              <hr className="my-8 border-violet-100" />
+                  <hr className="my-8 border-violet-100" />
+                </>
+              )}
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-gray-400 text-sm">Evento</p>
                   <p className="font-semibold text-lg">{evento}</p>
                 </div>
-
                 <div>
                   <p className="text-gray-400 text-sm">Tipo</p>
-                  <p className="font-semibold text-lg">
-                    {tipoEvento}
-                  </p>
+                  <p className="font-semibold text-lg">{tipoEvento}</p>
                 </div>
               </div>
 
@@ -315,7 +374,9 @@ export default function Pago() {
         )}
 
         <p className="mt-8 text-center text-gray-500">
-          Al confirmar, se creará tu cuenta y tu evento promocional.
+          {modoNuevoEvento
+            ? "Al confirmar, se guardará este evento en tu cuenta."
+            : "Al confirmar, se creará tu cuenta y tu evento promocional."}
         </p>
 
         <div className="flex gap-4 mt-10">
@@ -327,13 +388,16 @@ export default function Pago() {
           </Link>
 
           <button
+            type="button"
             onClick={confirmarPromocion}
             disabled={procesando}
             className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white py-4 rounded-2xl text-center"
           >
             {procesando
-              ? "Activando promoción..."
-              : "Activar promoción gratuita →"}
+              ? "Procesando..."
+              : modoNuevoEvento
+                ? "Confirmar evento gratuito →"
+                : "Activar promoción gratuita →"}
           </button>
         </div>
       </section>

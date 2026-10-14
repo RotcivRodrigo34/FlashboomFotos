@@ -30,7 +30,9 @@ export async function conectarGoogleDrive(
 const usuario = await obtenerUsuarioConToken(
   tokens.access_token
 );
-  const carpeta = await buscarOCrearCarpetaFlashboom();
+const carpeta = await buscarOCrearCarpetaFlashboom(
+  tokens.access_token
+);
 
   if (!usuario.email || !carpeta.id) {
     throw new Error(
