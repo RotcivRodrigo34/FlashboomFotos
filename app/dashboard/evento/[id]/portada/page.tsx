@@ -137,12 +137,17 @@ console.log("Evento seleccionado:", idEvento);
 
 const { error: errorDB } = await supabase
   .from("imagenes_portada")
-  .insert({
-    evento_id: Number(idEvento),
-    posicion,
-    imagen_url: imagenUrl,
-    storage_path: nombreArchivo,
-  });
+  .upsert(
+    {
+      evento_id: Number(idEvento),
+      posicion,
+      imagen_url: imagenUrl,
+      storage_path: nombreArchivo,
+    },
+    {
+      onConflict: "evento_id,posicion",
+    }
+  );
 if (errorDB) {
   console.error("Error real al guardar en la tabla:", {
     code: errorDB.code,
