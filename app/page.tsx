@@ -7,8 +7,9 @@ import { useState,useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
-  const [logueado,setLogueado]=useState(false);
-  const [verificandoSesion, setVerificandoSesion] = useState(true);
+const [logueado, setLogueado] = useState(false);
+const [verificandoSesion, setVerificandoSesion] = useState(true);
+const [menuAbierto, setMenuAbierto] = useState(false);
 
 useEffect(() => {
   const supabase = createClient();
@@ -55,145 +56,223 @@ useEffect(() => {
 
       {/* HEADER */}
 
-<header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg shadow-sm">
 
-  <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-lg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+          {/* LOGO */}
+          <Link href="/" onClick={() => setMenuAbierto(false)} className="shrink-0">
+            <Image
+              src="/logofb.png"
+              alt="FlashboomFotos"
+              width={150}
+              height={55}
+              priority
+              className="h-auto w-[125px] sm:w-[150px]"
+            />
+          </Link>
 
-    <a href="#inicio">
-  <Image
-    src="/logofb.png"
-    alt="FlashboomFotos"
-    width={170}
-    height={60}
-  />
-</a>
+          {/* NAVEGACIÓN DE ESCRITORIO */}
+          <nav className="hidden items-center gap-6 text-sm font-medium text-gray-700 lg:flex xl:gap-8">
+            <a href="#inicio" className="transition hover:text-violet-600">
+              Inicio
+            </a>
 
-    <nav className="hidden lg:flex gap-8 text-gray-700">
-      
-      <a  href="#inicio" className="hover:text-violet-600 transition">
-       Inicio
-      </a>
+            <a href="#como-funciona" className="transition hover:text-violet-600">
+              Cómo funciona
+            </a>
 
-      <a  href="#como-funciona" className="hover:text-violet-600 transition">
-        Cómo funciona
-      </a>
-      
-      {/* para despues 
-      //<a href="#eventos" className="hover:text-violet-600 transition">
-        Eventos
-      </a>
-      */}
+            {!logueado && (
+              <>
+                <a href="#planes" className="transition hover:text-violet-600">
+                  Planes
+                </a>
 
-      <a href="#planes" className="hover:text-violet-600 transition">
-        Planes
-      </a>
+                <a href="#faq" className="transition hover:text-violet-600">
+                  FAQ
+                </a>
+              </>
+            )}
 
-      <a href="#faq" className="hover:text-violet-600 transition">
-        FAQ
-      </a>
-      {
-logueado && (
+            {logueado && (
+              <Link href="/dashboard" className="transition hover:text-violet-600">
+                Mis Eventos
+              </Link>
+            )}
+          </nav>
 
-<Link
-href="/dashboard"
-className="hover:text-violet-600 transition">
+          {/* ACCIONES DE ESCRITORIO */}
+          <div className="hidden items-center gap-3 lg:flex">
+            {!logueado ? (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-xl px-4 py-3 font-semibold text-gray-700 transition hover:bg-violet-50 hover:text-violet-700"
+                >
+                  Iniciar sesión
+                </Link>
 
-Mis Eventos
+                <Link
+                  href="/crear-album"
+                  className="rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                >
+                  Crear mi álbum
+                </Link>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  const supabase = createClient();
+                  const { error } = await supabase.auth.signOut();
 
-</Link>
+                  if (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    return;
+                  }
 
-)
-}
+                  localStorage.removeItem("logueado");
+                  setLogueado(false);
+                  setMenuAbierto(false);
+                  window.location.href = "/";
+                }}
+                className="rounded-xl px-4 py-3 font-semibold text-gray-700 transition hover:bg-red-50 hover:text-red-600"
+              >
+                Cerrar sesión
+              </button>
+            )}
+          </div>
 
-    </nav>
+          {/* BOTÓN DE MENÚ MÓVIL */}
+          <button
+            type="button"
+            aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(!menuAbierto)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 lg:hidden"
+          >
+            {menuAbierto ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-6 w-6"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-6 w-6"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
 
-    <div className="flex gap-4 items-center">
+        {/* MENÚ DESPLEGABLE MÓVIL */}
+        {menuAbierto && (
+          <div className="border-t border-gray-100 bg-white px-4 pb-5 pt-3 shadow-lg lg:hidden">
+            <nav className="mx-auto flex max-w-7xl flex-col gap-1">
+              <a
+                href="#inicio"
+                onClick={() => setMenuAbierto(false)}
+                className="rounded-xl px-4 py-3 font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-700"
+              >
+                Inicio
+              </a>
 
-     {
-!logueado ? (
+              {!logueado && (
+                <>
+                  <a
+                    href="#como-funciona"
+                    onClick={() => setMenuAbierto(false)}
+                    className="rounded-xl px-4 py-3 font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-700"
+                  >
+                    Cómo funciona
+                  </a>
 
-<button
+                  <a
+                    href="#planes"
+                    onClick={() => setMenuAbierto(false)}
+                    className="rounded-xl px-4 py-3 font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-700"
+                  >
+                    Planes
+                  </a>
 
-onClick={()=>{
+                  <a
+                    href="#faq"
+                    onClick={() => setMenuAbierto(false)}
+                    className="rounded-xl px-4 py-3 font-medium text-gray-700 transition hover:bg-violet-50 hover:text-violet-700"
+                  >
+                    FAQ
+                  </a>
 
-window.location.href="/login";
+                  <div className="my-2 border-t border-gray-100" />
 
-}}
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuAbierto(false)}
+                    className="rounded-xl border border-violet-200 px-4 py-3 text-center font-semibold text-violet-700 transition hover:bg-violet-50"
+                  >
+                    Iniciar sesión
+                  </Link>
 
-className="
-w-full
-mt-10
-bg-violet-600
-hover:bg-violet-700
-transition
-text-white
-py-4
-rounded-2xl
-">
+                  <Link
+                    href="/crear-album"
+                    onClick={() => setMenuAbierto(false)}
+                    className="mt-2 rounded-xl bg-violet-600 px-4 py-3 text-center font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                  >
+                    Crear mi álbum
+                  </Link>
+                </>
+              )}
 
-Iniciar sesión
+              {logueado && (
+                <>
+                  <div className="my-2 border-t border-gray-100" />
 
-</button>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuAbierto(false)}
+                    className="rounded-xl bg-violet-50 px-4 py-3 font-semibold text-violet-700 transition hover:bg-violet-100"
+                  >
+                    Mis Eventos
+                  </Link>
 
-)
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const supabase = createClient();
+                      const { error } = await supabase.auth.signOut();
 
-:
+                      if (error) {
+                        console.error("Error al cerrar sesión:", error);
+                        return;
+                      }
 
-(
-
-<button
-
-onClick={async () => {
-  const supabase = createClient();
-
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    console.error("Error al cerrar sesión:", error);
-    return;
-  }
-
-  localStorage.removeItem("logueado");
-  window.location.href = "/";
-}}
-
-className="hidden md:block text-gray-700 hover:text-violet-600">
-
-Cerrar sesión
-
-</button>
-
-)
-}
-
-{
-!logueado && (
-
-<Link
-
-href="/crear-album"
-
-className="
-bg-violet-600
-hover:bg-violet-700
-transition
-text-white
-px-6
-py-3
-rounded-xl">
-
-Crear mi álbum
-
-</Link>
-
-)
-}
-
-    </div>
-
-  </div>
-
-</header>
+                      localStorage.removeItem("logueado");
+                      setLogueado(false);
+                      setMenuAbierto(false);
+                      window.location.href = "/";
+                    }}
+                    className="mt-2 rounded-xl px-4 py-3 text-left font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
+              )}
+            </nav>
+          </div>
+        )}
+      </header>
 
 
 {/* HERO */}
